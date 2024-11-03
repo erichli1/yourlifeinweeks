@@ -92,13 +92,13 @@ function InitialState() {
             </Button>
           ) : null}
         </div>
-        <div className="text-sm text-gray-500 pt-2">
+        {/* <div className="text-sm text-gray-500 pt-2">
           Been here before?{" "}
           <SignInButton mode="modal">
             <span className="underline">Sign in</span>
           </SignInButton>
           .
-        </div>
+        </div> */}
       </div>
     </div>
   );
