@@ -74,7 +74,7 @@ function InitialState() {
     <div className="flex items-center justify-center h-screen p-4">
       <div className="flex flex-col gap-2 max-w-md">
         <div>
-          Welcome to your life calendar — a reminder that life is short.
+          Welcome to your life in weeks — a reminder that life is short.
           When&apos;s your birthday?
         </div>
         <div className="flex flex-row gap-2">
