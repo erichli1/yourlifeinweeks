@@ -10,7 +10,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import { Code } from "@/components/typography/code";
 import { Link } from "@/components/typography/link";
-import { SignInButton } from "@clerk/clerk-react";
+// import { SignInButton } from "@clerk/clerk-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { ChevronRight } from "lucide-react";
