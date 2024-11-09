@@ -122,7 +122,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
       if (e.ctrlKey) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 5));
+        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 10));
       }
     };
 
@@ -143,40 +143,40 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
       <div ref={gridRef}>
         <div className="relative">
           <div
-            className="grid gap-[1px]"
+            className="grid gap-[10px]"
             style={{
               gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-              gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
-              aspectRatio: "52/90",
-              height: "min(95vh, 95vw * 90/52)",
-              width: "min(95vw, 95vh * 52/90)",
-              transform: `scale(${zoom})`,
+              gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
+              aspectRatio: "53/91",
+              height: "min(950vh, 950vw * 91/53)",
+              width: "min(950vw, 950vh * 53/91)",
+              transform: `scale(${zoom * 0.1})`,
             }}
           >
             {/* Week numbers header row */}
-            {/* <div></div>
-        {Array.from({ length: 52 }).map((_, i) => (
-          <div
-            key={`header-week-${i}`}
-            className="text-[8px] text-center text-gray-500 self-end overflow-hidden"
-          >
-            {i + 1}
-          </div>
-        ))} */}
+            <div></div>
+            {Array.from({ length: 52 }).map((_, i) => (
+              <div
+                key={`header-week-${i}`}
+                className="text-[40px] text-center flex items-center justify-center text-gray-500 self-end overflow-hidden"
+              >
+                {i + 1}
+              </div>
+            ))}
             {/* Grid cells */}
             {Array.from({ length: 90 }).map((_, year) => (
               <React.Fragment key={`year-${year}`}>
-                {/* <div
-              key={`header-year-${year}`}
-              className="text-[8px] text-center text-gray-500 overflow-hidden"
-            >
-              {year}
-            </div> */}
+                <div
+                  key={`header-year-${year}`}
+                  className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden"
+                >
+                  {year}
+                </div>
                 {Array.from({ length: 52 }).map((_, week) => (
                   <div
                     key={`cell-${year}-${week}`}
                     className={cn(
-                      "aspect-square border-[0.5px] border-black dark:border-white",
+                      "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
                       didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
                     )}
                   />
