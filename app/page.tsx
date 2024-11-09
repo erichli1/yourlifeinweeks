@@ -14,7 +14,7 @@ import { Link } from "@/components/typography/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -106,6 +106,8 @@ function InitialState() {
 
 function LifeCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
+  const [zoom, setZoom] = useState<number>(1);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const didWeekPass = (year: number, week: number) => {
     const date = new Date(birthday.getTime());
@@ -115,20 +117,44 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
     return date < today;
   };
 
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 5));
+      }
+    };
+
+    const gridElement = gridRef.current;
+    if (gridElement) {
+      gridElement.addEventListener("wheel", handleWheel, { passive: false });
+    }
+
+    return () => {
+      if (gridElement) {
+        gridElement.removeEventListener("wheel", handleWheel);
+      }
+    };
+  }, []);
+
   return (
-    <div className="h-screen flex justify-center items-center p-4">
-      <div
-        className="grid gap-[1px]"
-        style={{
-          gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-          gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
-          aspectRatio: "52/90",
-          height: "min(95vh, 95vw * 90/52)",
-          width: "min(95vw, 95vh * 52/90)",
-        }}
-      >
-        {/* Week numbers header row */}
-        {/* <div></div>
+    <div className="h-screen flex justify-center items-center p-4 overflow-hidden">
+      <div ref={gridRef}>
+        <div className="relative">
+          <div
+            className="grid gap-[1px]"
+            style={{
+              gridTemplateRows: "repeat(90, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
+              aspectRatio: "52/90",
+              height: "min(95vh, 95vw * 90/52)",
+              width: "min(95vw, 95vh * 52/90)",
+              transform: `scale(${zoom})`,
+            }}
+          >
+            {/* Week numbers header row */}
+            {/* <div></div>
         {Array.from({ length: 52 }).map((_, i) => (
           <div
             key={`header-week-${i}`}
@@ -137,26 +163,28 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
             {i + 1}
           </div>
         ))} */}
-        {/* Grid cells */}
-        {Array.from({ length: 90 }).map((_, year) => (
-          <React.Fragment key={`year-${year}`}>
-            {/* <div
+            {/* Grid cells */}
+            {Array.from({ length: 90 }).map((_, year) => (
+              <React.Fragment key={`year-${year}`}>
+                {/* <div
               key={`header-year-${year}`}
               className="text-[8px] text-center text-gray-500 overflow-hidden"
             >
               {year}
             </div> */}
-            {Array.from({ length: 52 }).map((_, week) => (
-              <div
-                key={`cell-${year}-${week}`}
-                className={cn(
-                  "aspect-square border-[0.5px] border-black dark:border-white",
-                  didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
-                )}
-              />
+                {Array.from({ length: 52 }).map((_, week) => (
+                  <div
+                    key={`cell-${year}-${week}`}
+                    className={cn(
+                      "aspect-square border-[0.5px] border-black dark:border-white",
+                      didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
+                    )}
+                  />
+                ))}
+              </React.Fragment>
             ))}
-          </React.Fragment>
-        ))}
+          </div>
+        </div>
       </div>
     </div>
   );
