@@ -104,10 +104,37 @@ function InitialState() {
   );
 }
 
+function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
+  const [zoom, setZoom] = useState<number>(1);
+
+  // Handle zooming in and out
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 10));
+      }
+    };
+
+    // Add event listener for zooming
+    const pageElement = pageRef.current;
+    if (pageElement)
+      pageElement.addEventListener("wheel", handleWheel, { passive: false });
+
+    // Remove event listener on cleanup
+    return () => {
+      if (pageElement) pageElement.removeEventListener("wheel", handleWheel);
+    };
+  }, [pageRef]);
+
+  return zoom;
+}
+
 function LifeCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
-  const [zoom, setZoom] = useState<number>(1);
-  const gridRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const zoom = useZoom(pageRef);
 
   const didWeekPass = (year: number, week: number) => {
     // Find the start of the week (Sunday) before the birthday
@@ -123,74 +150,53 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
     return endOfGivenWeek < today;
   };
 
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey) {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 10));
-      }
-    };
-
-    const gridElement = gridRef.current;
-    if (gridElement) {
-      gridElement.addEventListener("wheel", handleWheel, { passive: false });
-    }
-
-    return () => {
-      if (gridElement) {
-        gridElement.removeEventListener("wheel", handleWheel);
-      }
-    };
-  }, []);
-
   return (
-    <div className="h-screen flex justify-center items-center p-4 overflow-hidden">
-      <div ref={gridRef}>
-        <div className="relative">
+    <div
+      className="h-screen flex justify-center items-center p-4 overflow-hidden"
+      ref={pageRef}
+    >
+      <div
+        className="grid gap-[10px]"
+        style={{
+          gridTemplateRows: "repeat(90, minmax(0, 1fr))",
+          gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
+          aspectRatio: "53/91",
+          height: "min(950vh, 950vw * 91/53)",
+          width: "min(950vw, 950vh * 53/91)",
+          transform: `scale(${zoom * 0.1})`,
+        }}
+      >
+        {/* Empty box at 0,0 */}
+        <div />
+        {/* Week numbers header row */}
+        {Array.from({ length: 52 }).map((_, i) => (
           <div
-            className="grid gap-[10px]"
-            style={{
-              gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-              gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
-              aspectRatio: "53/91",
-              height: "min(950vh, 950vw * 91/53)",
-              width: "min(950vw, 950vh * 53/91)",
-              transform: `scale(${zoom * 0.1})`,
-            }}
+            key={`header-week-${i}`}
+            className="text-[40px] text-center flex items-center justify-center text-gray-500 self-end overflow-hidden"
           >
-            {/* Week numbers header row */}
-            <div></div>
-            {Array.from({ length: 52 }).map((_, i) => (
-              <div
-                key={`header-week-${i}`}
-                className="text-[40px] text-center flex items-center justify-center text-gray-500 self-end overflow-hidden"
-              >
-                {i + 1}
-              </div>
-            ))}
-            {/* Grid cells */}
-            {Array.from({ length: 90 }).map((_, year) => (
-              <React.Fragment key={`year-${year}`}>
-                <div
-                  key={`header-year-${year}`}
-                  className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden"
-                >
-                  {year}
-                </div>
-                {Array.from({ length: 52 }).map((_, week) => (
-                  <div
-                    key={`cell-${year}-${week}`}
-                    className={cn(
-                      "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                      didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
-                    )}
-                  />
-                ))}
-              </React.Fragment>
-            ))}
+            {i + 1}
           </div>
-        </div>
+        ))}
+        {/* Grid cells */}
+        {Array.from({ length: 90 }).map((_, year) => (
+          <React.Fragment key={`year-${year}`}>
+            <div
+              key={`header-year-${year}`}
+              className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden"
+            >
+              {year}
+            </div>
+            {Array.from({ length: 52 }).map((_, week) => (
+              <div
+                key={`cell-${year}-${week}`}
+                className={cn(
+                  "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
+                  didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
+                )}
+              />
+            ))}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );
