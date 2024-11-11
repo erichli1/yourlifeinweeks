@@ -131,24 +131,35 @@ function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
   return zoom;
 }
 
+function didWeekPass({
+  birthday,
+  today,
+  year,
+  week,
+}: {
+  birthday: Date;
+  today: Date;
+  year: number;
+  week: number;
+}) {
+  // Find the start of the week (Sunday) before the birthday
+  const endOfBirthdayWeek = new Date(birthday);
+  endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
+  endOfBirthdayWeek.setHours(23, 59, 59, 999);
+
+  // Get the offset from end of birthday week to given year and week
+  const endOfGivenWeek = new Date(endOfBirthdayWeek);
+  endOfGivenWeek.setFullYear(endOfBirthdayWeek.getFullYear() + year);
+  endOfGivenWeek.setDate(endOfBirthdayWeek.getDate() + week * 7);
+
+  return endOfGivenWeek < today;
+}
+
 function LifeCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
+
   const pageRef = useRef<HTMLDivElement>(null);
   const zoom = useZoom(pageRef);
-
-  const didWeekPass = (year: number, week: number) => {
-    // Find the start of the week (Sunday) before the birthday
-    const endOfBirthdayWeek = new Date(birthday);
-    endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
-    endOfBirthdayWeek.setHours(23, 59, 59, 999);
-
-    // Get the offset from end of birthday week to given year and week
-    const endOfGivenWeek = new Date(endOfBirthdayWeek);
-    endOfGivenWeek.setFullYear(endOfBirthdayWeek.getFullYear() + year);
-    endOfGivenWeek.setDate(endOfBirthdayWeek.getDate() + week * 7);
-
-    return endOfGivenWeek < today;
-  };
 
   return (
     <div
@@ -191,7 +202,9 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
                 key={`cell-${year}-${week}`}
                 className={cn(
                   "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                  didWeekPass(year, week) ? "bg-black dark:bg-white" : ""
+                  didWeekPass({ birthday, today, year, week })
+                    ? "bg-black dark:bg-white"
+                    : ""
                 )}
               />
             ))}
