@@ -10,7 +10,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import { Code } from "@/components/typography/code";
 import { Link } from "@/components/typography/link";
-// import { SignInButton } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/clerk-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { ChevronRight, MinimizeIcon } from "lucide-react";
@@ -74,32 +74,29 @@ function InitialState() {
   return (
     <div className="flex items-center justify-center h-screen p-4">
       <div className="flex flex-col gap-2 max-w-md">
-        <div>
-          Welcome to your life in weeks — a reminder that life is short.
-          When&apos;s your birthday?
-        </div>
+        <div>Your life map awaits — just enter your birthday.</div>
         <div className="flex flex-row gap-2">
           <Input
             type="date"
             placeholder="Date"
-            className="w-fit"
+            className="w-fit cursor-text"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             onKeyDown={handleKeyDown}
           />
           {isValidDate(date) ? (
-            <Button size="icon" onClick={updateSearchParams}>
+            <Button size="icon" onClick={updateSearchParams} variant="outline">
               <ChevronRight className="w-4 h-4" />
             </Button>
           ) : null}
         </div>
-        {/* <div className="text-sm text-gray-500 pt-2">
+        <div className="text-sm text-gray-500 pt-2">
           Been here before?{" "}
           <SignInButton mode="modal">
-            <span className="underline">Sign in</span>
+            <span className="underline cursor-pointer">Sign in</span>
           </SignInButton>
           .
-        </div> */}
+        </div>
       </div>
     </div>
   );
