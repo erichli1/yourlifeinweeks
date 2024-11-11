@@ -17,6 +17,11 @@ import { ChevronRight, MinimizeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 const DEFAULT_ZOOM = 1;
@@ -227,9 +232,63 @@ function didWeekPass({
   return endOfGivenWeek < today;
 }
 
-function LifeCalendar({ birthday }: { birthday: Date }) {
+function GridCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
 
+  return (
+    <div
+      className="grid gap-[10px]"
+      style={{
+        gridTemplateRows: "repeat(90, minmax(0, 1fr))",
+        gridTemplateColumns: "repeat(54, minmax(0, 1fr))",
+      }}
+    >
+      {/* Empty box at 0,0 */}
+      <div className="bg-background sticky top-0 left-0 z-20" />
+      {/* Week numbers header row */}
+      {Array.from({ length: 52 }).map((_, i) => (
+        <div
+          key={`header-week-${i}`}
+          className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky top-0"
+        >
+          {i + 1}
+        </div>
+      ))}
+      <div />
+      {/* Grid cells */}
+      {Array.from({ length: 90 }).map((_, year) => (
+        <React.Fragment key={`year-${year}`}>
+          <div
+            key={`header-year-${year}`}
+            className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky left-0"
+          >
+            {year}
+          </div>
+          {Array.from({ length: 52 }).map((_, week) => (
+            <Popover key={`cell-${year}-${week}`}>
+              <PopoverTrigger>
+                <div
+                  className={cn(
+                    "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
+                    didWeekPass({ birthday, today, year, week })
+                      ? "bg-black dark:bg-white"
+                      : ""
+                  )}
+                />
+              </PopoverTrigger>
+              <PopoverContent>Place content for popover here.</PopoverContent>
+            </Popover>
+          ))}
+          <div />
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+const MemoizedGridCalendar = React.memo(GridCalendar);
+
+function LifeCalendar({ birthday }: { birthday: Date }) {
   const pageRef = useRef<HTMLDivElement>(null);
   const { zoom, resetZoom } = useZoom(pageRef);
   useDrag(pageRef);
@@ -248,49 +307,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
           zoom: zoom * 0.1,
         }}
       >
-        <div
-          className="grid gap-[10px]"
-          style={{
-            gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-            gridTemplateColumns: "repeat(54, minmax(0, 1fr))",
-          }}
-        >
-          {/* Empty box at 0,0 */}
-          <div className="bg-background sticky top-0 left-0 z-20" />
-          {/* Week numbers header row */}
-          {Array.from({ length: 52 }).map((_, i) => (
-            <div
-              key={`header-week-${i}`}
-              className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky top-0"
-            >
-              {i + 1}
-            </div>
-          ))}
-          <div />
-          {/* Grid cells */}
-          {Array.from({ length: 90 }).map((_, year) => (
-            <React.Fragment key={`year-${year}`}>
-              <div
-                key={`header-year-${year}`}
-                className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky left-0"
-              >
-                {year}
-              </div>
-              {Array.from({ length: 52 }).map((_, week) => (
-                <div
-                  key={`cell-${year}-${week}`}
-                  className={cn(
-                    "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                    didWeekPass({ birthday, today, year, week })
-                      ? "bg-black dark:bg-white"
-                      : ""
-                  )}
-                />
-              ))}
-              <div />
-            </React.Fragment>
-          ))}
-        </div>
+        <MemoizedGridCalendar birthday={birthday} />
       </div>
       {zoom !== DEFAULT_ZOOM && (
         <Button
