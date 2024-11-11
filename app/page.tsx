@@ -53,7 +53,7 @@ function UnauthenticatedScreen() {
   useEffect(() => {
     const onboardingTimer = setTimeout(() => {
       setOnboardingComplete(true);
-    }, 8000);
+    }, 16000);
 
     return () => {
       clearTimeout(onboardingTimer);
