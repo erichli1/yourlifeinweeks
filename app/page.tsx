@@ -17,6 +17,7 @@ import { ChevronRight, MinimizeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
+import { Onboarding } from "./Onboarding";
 
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 const DEFAULT_ZOOM = 1;
@@ -47,6 +48,17 @@ export default function Home() {
 
 function UnauthenticatedScreen() {
   const [birthday, setBirthday] = useState<Date | undefined>(undefined);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+
+  useEffect(() => {
+    const onboardingTimer = setTimeout(() => {
+      setOnboardingComplete(true);
+    }, 8000);
+
+    return () => {
+      clearTimeout(onboardingTimer);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -56,7 +68,15 @@ function UnauthenticatedScreen() {
     }
   }, []);
 
-  return birthday ? <LifeCalendar birthday={birthday} /> : <InitialState />;
+  return birthday ? (
+    onboardingComplete ? (
+      <LifeCalendar birthday={birthday} />
+    ) : (
+      <Onboarding />
+    )
+  ) : (
+    <InitialState />
+  );
 }
 
 // TODO: make date picker cuter (https://github.com/dubinc/dub/blob/7abb88671d68d107004678b47fecd7f7ba40d918/apps/web/ui/modals/add-edit-link-modal/expiration-section.tsx)
