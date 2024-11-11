@@ -13,12 +13,13 @@ import { Link } from "@/components/typography/link";
 // import { SignInButton } from "@clerk/clerk-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MinimizeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
 
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
+const DEFAULT_ZOOM = 1;
 
 const isValidDate = (dateStr: string) => {
   const parsedDate = Date.parse(dateStr);
@@ -105,7 +106,9 @@ function InitialState() {
 }
 
 function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
-  const [zoom, setZoom] = useState<number>(1);
+  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
+
+  const resetZoom = () => setZoom(DEFAULT_ZOOM);
 
   // Handle zooming in and out
   useEffect(() => {
@@ -113,7 +116,9 @@ function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
       if (e.altKey) {
         e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setZoom((prevZoom) => Math.min(Math.max(prevZoom * delta, 0.1), 10));
+        setZoom((prevZoom) =>
+          Math.min(Math.max(prevZoom * delta, DEFAULT_ZOOM), 10)
+        );
       }
     };
 
@@ -128,7 +133,7 @@ function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
     };
   }, [pageRef]);
 
-  return zoom;
+  return { zoom, resetZoom };
 }
 
 function useDrag(pageRef: React.RefObject<HTMLDivElement>) {
@@ -226,7 +231,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
 
   const pageRef = useRef<HTMLDivElement>(null);
-  const zoom = useZoom(pageRef);
+  const { zoom, resetZoom } = useZoom(pageRef);
   useDrag(pageRef);
 
   return (
@@ -287,6 +292,16 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
           ))}
         </div>
       </div>
+      {zoom !== DEFAULT_ZOOM && (
+        <Button
+          className="fixed bottom-0 right-0 m-2 bg-background shadow-lg"
+          variant="outline"
+          size="icon"
+          onClick={resetZoom}
+        >
+          <MinimizeIcon className="w-4 h-4" />
+        </Button>
+      )}
     </div>
   );
 }
