@@ -51,7 +51,7 @@ function UnauthenticatedScreen() {
     const params = new URLSearchParams(window.location.search);
     const birthdayParam = params.get("birthday");
     if (birthdayParam && isValidDate(birthdayParam)) {
-      setBirthday(new Date(birthdayParam));
+      setBirthday(new Date(birthdayParam + "T00:00:00"));
     }
   }, []);
 
@@ -110,11 +110,17 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
   const gridRef = useRef<HTMLDivElement>(null);
 
   const didWeekPass = (year: number, week: number) => {
-    const date = new Date(birthday.getTime());
-    date.setFullYear(birthday.getFullYear() + year);
-    date.setDate(birthday.getDate() + week * 7);
+    // Find the start of the week (Sunday) before the birthday
+    const endOfBirthdayWeek = new Date(birthday);
+    endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
+    endOfBirthdayWeek.setHours(23, 59, 59, 999);
 
-    return date < today;
+    // Get the offset from end of birthday week to given year and week
+    const endOfGivenWeek = new Date(endOfBirthdayWeek);
+    endOfGivenWeek.setFullYear(endOfBirthdayWeek.getFullYear() + year);
+    endOfGivenWeek.setDate(endOfBirthdayWeek.getDate() + week * 7);
+
+    return endOfGivenWeek < today;
   };
 
   useEffect(() => {
