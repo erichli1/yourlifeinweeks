@@ -163,53 +163,58 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
 
   return (
     <div
-      className="h-screen flex justify-center items-center p-4 overflow-hidden"
+      className="h-screen flex justify-center items-center p-4 overflow-clip"
       ref={pageRef}
     >
       <div
-        className="grid gap-[10px]"
         style={{
-          gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-          gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
           aspectRatio: "53/91",
           height: "min(950vh, 950vw * 91/53)",
           width: "min(950vw, 950vh * 53/91)",
-          transform: `scale(${zoom * 0.1})`,
+          zoom: zoom * 0.1,
         }}
       >
-        {/* Empty box at 0,0 */}
-        <div />
-        {/* Week numbers header row */}
-        {Array.from({ length: 52 }).map((_, i) => (
-          <div
-            key={`header-week-${i}`}
-            className="text-[40px] text-center flex items-center justify-center text-gray-500 self-end overflow-hidden"
-          >
-            {i + 1}
-          </div>
-        ))}
-        {/* Grid cells */}
-        {Array.from({ length: 90 }).map((_, year) => (
-          <React.Fragment key={`year-${year}`}>
+        <div
+          className="grid gap-[10px]"
+          style={{
+            gridTemplateRows: "repeat(90, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
+          }}
+        >
+          {/* Empty box at 0,0 */}
+          <div className="bg-background sticky top-0 left-0 z-20" />
+          {/* Week numbers header row */}
+          {Array.from({ length: 52 }).map((_, i) => (
             <div
-              key={`header-year-${year}`}
-              className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden"
+              key={`header-week-${i}`}
+              className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky top-0"
             >
-              {year}
+              {i + 1}
             </div>
-            {Array.from({ length: 52 }).map((_, week) => (
+          ))}
+          {/* Grid cells */}
+          {Array.from({ length: 90 }).map((_, year) => (
+            <React.Fragment key={`year-${year}`}>
               <div
-                key={`cell-${year}-${week}`}
-                className={cn(
-                  "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                  didWeekPass({ birthday, today, year, week })
-                    ? "bg-black dark:bg-white"
-                    : ""
-                )}
-              />
-            ))}
-          </React.Fragment>
-        ))}
+                key={`header-year-${year}`}
+                className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky left-0"
+              >
+                {year}
+              </div>
+              {Array.from({ length: 52 }).map((_, week) => (
+                <div
+                  key={`cell-${year}-${week}`}
+                  className={cn(
+                    "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
+                    didWeekPass({ birthday, today, year, week })
+                      ? "bg-black dark:bg-white"
+                      : ""
+                  )}
+                />
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </div>
   );
