@@ -237,9 +237,9 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
       <div
         className="mx-auto my-auto"
         style={{
-          aspectRatio: "53/91",
-          height: "min(950vh, 950vw * 91/53)",
-          width: "min(950vw, 950vh * 53/91)",
+          aspectRatio: "54/91",
+          height: "min(950vh, 950vw * 91/54)",
+          width: "min(950vw, 950vh * 54/91)",
           zoom: zoom * 0.1,
         }}
       >
@@ -247,7 +247,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
           className="grid gap-[10px]"
           style={{
             gridTemplateRows: "repeat(90, minmax(0, 1fr))",
-            gridTemplateColumns: "repeat(53, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(54, minmax(0, 1fr))",
           }}
         >
           {/* Empty box at 0,0 */}
@@ -261,6 +261,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
               {i + 1}
             </div>
           ))}
+          <div />
           {/* Grid cells */}
           {Array.from({ length: 90 }).map((_, year) => (
             <React.Fragment key={`year-${year}`}>
@@ -281,6 +282,7 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
                   )}
                 />
               ))}
+              <div />
             </React.Fragment>
           ))}
         </div>
