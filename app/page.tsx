@@ -17,11 +17,6 @@ import { ChevronRight, MinimizeIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 const DEFAULT_ZOOM = 1;
@@ -265,19 +260,15 @@ function GridCalendar({ birthday }: { birthday: Date }) {
             {year}
           </div>
           {Array.from({ length: 52 }).map((_, week) => (
-            <Popover key={`cell-${year}-${week}`}>
-              <PopoverTrigger>
-                <div
-                  className={cn(
-                    "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                    didWeekPass({ birthday, today, year, week })
-                      ? "bg-black dark:bg-white"
-                      : ""
-                  )}
-                />
-              </PopoverTrigger>
-              <PopoverContent>Place content for popover here.</PopoverContent>
-            </Popover>
+            <div
+              className={cn(
+                "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
+                didWeekPass({ birthday, today, year, week })
+                  ? "bg-black dark:bg-white"
+                  : ""
+              )}
+              key={`cell-${year}-${week}`}
+            />
           ))}
           <div />
         </React.Fragment>
