@@ -1,139 +1,135 @@
 import { cn } from "@/lib/utils";
 import React from "react";
+import { Stage, TitleMap, StageList, DelayMap, ViewMap } from "./utils";
 
-const DELAY_TO_MINIMIZE_ONE_WEEK = 2000;
-const DELAY_TO_SHOW_ONE_FULL_YEAR = 4000;
-const DELAY_TO_SHOW_ONE_SMALL_YEAR = 8000;
-const DELAY_TO_SHOW_ONE_FULL_LIFE = 9000;
+const DURATION_OF_DROP_IN_ANIMATION = 500;
+const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
 
-const DURATION_OF_WEEK_DROP_IN_ANIMATION = 500;
-const INCREMENT_DURATION_OF_WEEK_DROP_IN_ANIMATION = 50;
-const DURATION_OF_YEAR_DROP_IN_ANIMATION = 500;
-const INCREMENT_DURATION_OF_YEAR_DROP_IN_ANIMATION = 50;
+const onboardingSquareClasses =
+  "aspect-square border-[1px] border-black dark:border-white";
+const fadeInClasses = "animate-in fade-in";
+const duration500Ms = "duration-500";
+const duration1000Ms = "duration-1000";
+const SIZE_OF_BIG_WEEK = "w-[8rem]";
+const SIZE_OF_WEEK_IN_YEAR = "w-[calc((100vw-102px-2rem)/52)]";
+
+function Title({ stage }: { stage: Stage }) {
+  const title = TitleMap[stage];
+
+  if (!title) return <div>&nbsp;</div>;
+  return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
+}
+
+const incrementalAnimation = (counter: number) =>
+  `enter ${DURATION_OF_DROP_IN_ANIMATION}ms ease-out ${(counter + 1) * INCREMENT_DURATION_OF_DROP_IN_ANIMATION}ms forwards`;
+
+function ComponentFor1x52({ stage }: { stage: Stage }) {
+  return (
+    <>
+      <div
+        className={cn(
+          onboardingSquareClasses,
+          duration1000Ms,
+          "transition-all",
+          "absolute top-0",
+          stage === "oneBigWeek" &&
+            cn("left-1/2 transform -translate-x-1/2", SIZE_OF_BIG_WEEK),
+          (stage === "oneSmallWeek" || stage === "oneFullYear") &&
+            cn("left-0 transform-none", SIZE_OF_WEEK_IN_YEAR)
+        )}
+      />
+
+      {stage === "oneSmallWeek" && (
+        <div className={cn(SIZE_OF_WEEK_IN_YEAR)}>&nbsp;</div>
+      )}
+
+      {stage === "oneFullYear" && (
+        <>
+          {/* Empty padding cell to account for transformed big week */}
+          <div className={cn(SIZE_OF_WEEK_IN_YEAR)} />
+          {/* 51 additional cells, one for each week of the year */}
+          {Array.from({ length: 51 }).map((_, i) => (
+            <div
+              key={i + 1}
+              className={cn(
+                onboardingSquareClasses,
+                fadeInClasses,
+                duration500Ms,
+                "slide-in-from-top fill-mode-forwards"
+              )}
+              style={{
+                opacity: 0,
+                animation: incrementalAnimation(i),
+              }}
+            />
+          ))}
+        </>
+      )}
+    </>
+  );
+}
+
+function ComponentFor90x52({ stage }: { stage: Stage }) {
+  return (
+    <>
+      {/* First row of 52 cells, tracked separately for transitions */}
+      {Array.from({ length: 52 }).map((_, i) => (
+        <div key={i} className={cn(onboardingSquareClasses)} />
+      ))}
+
+      {/* Remaining 89 years of life */}
+      {stage === "oneFullLife" &&
+        Array.from({ length: 89 }).map((_, i) =>
+          Array.from({ length: 52 }).map((_, j) => (
+            <div
+              key={`${i}-${j}`}
+              className={cn(onboardingSquareClasses)}
+              style={{
+                opacity: 0,
+                animation: incrementalAnimation(i),
+              }}
+            />
+          ))
+        )}
+    </>
+  );
+}
 
 export function Onboarding() {
-  const [stage, setStage] = React.useState<
-    | "oneBigWeek"
-    | "oneSmallWeek"
-    | "oneFullYear"
-    | "oneSmallYear"
-    | "oneFullLife"
-  >("oneBigWeek");
+  const [stage, setStage] = React.useState<Stage>("oneBigWeek");
 
   React.useEffect(() => {
-    const smallTimer = setTimeout(() => {
-      setStage("oneSmallWeek");
-    }, DELAY_TO_MINIMIZE_ONE_WEEK);
+    const timers = StageList.filter((s) => s !== "oneBigWeek").map((stage) =>
+      setTimeout(() => setStage(stage as Stage), DelayMap[stage])
+    );
 
-    const oneFullYearTimer = setTimeout(() => {
-      setStage("oneFullYear");
-    }, DELAY_TO_SHOW_ONE_FULL_YEAR);
-
-    const oneSmallYearTimer = setTimeout(() => {
-      setStage("oneSmallYear");
-    }, DELAY_TO_SHOW_ONE_SMALL_YEAR);
-
-    const fullLifeTimer = setTimeout(() => {
-      setStage("oneFullLife");
-    }, DELAY_TO_SHOW_ONE_FULL_LIFE);
-
-    return () => {
-      clearTimeout(smallTimer);
-      clearTimeout(oneFullYearTimer);
-      clearTimeout(oneSmallYearTimer);
-      clearTimeout(fullLifeTimer);
-    };
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   return (
-    <div className="h-screen flex items-center justify-center flex-col gap-4 animate-in fade-in duration-500 p-4">
-      {stage === "oneBigWeek" && <div>This is one week of your life.</div>}
-      {stage === "oneSmallWeek" && <div>&nbsp;</div>}
-      {stage === "oneFullYear" && (
-        <div className="animate-in fade-in duration-500">
-          This is one year of your life.
-        </div>
-      )}
-      {stage === "oneSmallYear" && <div>&nbsp;</div>}
-      {stage === "oneFullLife" && (
-        <div className="animate-in fade-in duration-500">
-          This is your life.
-        </div>
-      )}
+    <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
+      <Title stage={stage} />
 
       <div
-        className="relative grid gap-[2px] w-full transition-all duration-1000"
+        className={cn(
+          "relative grid gap-[2px] w-full",
+          fadeInClasses,
+          duration500Ms
+        )}
         style={{
           gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
           height:
-            stage === "oneSmallYear" || stage === "oneFullLife"
+            ViewMap[stage] === "90x52"
               ? "min(95vh, (95vw * 90) / 52)"
-              : "calc((100vw - 2rem) / 52)", // Adjusted for padding/margins
+              : "calc((100vw - 2rem) / 52)",
           width:
-            stage === "oneSmallYear" || stage === "oneFullLife"
+            ViewMap[stage] === "90x52"
               ? "min(95vw, (95vh * 52) / 90)"
               : "calc(100vw - 2rem)",
         }}
       >
-        {(stage === "oneBigWeek" ||
-          stage === "oneSmallWeek" ||
-          stage === "oneFullYear") && (
-          <div
-            className={cn(
-              "aspect-square border-[2px] border-black dark:border-white",
-              "transition-all duration-1000",
-              "absolute top-0",
-              stage === "oneBigWeek" &&
-                "left-1/2 transform -translate-x-1/2 w-[8rem]",
-              (stage === "oneSmallWeek" || stage === "oneFullYear") &&
-                "left-0 transform-none w-[calc((100vw-102px-2rem)/52)]"
-            )}
-          />
-        )}
-        {(stage === "oneBigWeek" || stage === "oneSmallWeek") && (
-          <div className="h-[calc(100vw/52)]">&nbsp;</div>
-        )}
-        {stage === "oneFullYear" && (
-          <>
-            {/* Empty padding cell */}
-            <div className="w-[calc(100vw/52)]" />
-            {/* 51 additional cells, one for each week of the year */}
-            {Array.from({ length: 51 }).map((_, i) => (
-              <div
-                key={i + 1}
-                className={cn(
-                  "aspect-square border-[2px] border-black dark:border-white",
-                  "animate-in fade-in slide-in-from-top duration-1000 fill-mode-forwards"
-                  //   "w-[calc(100vw/52)]"
-                )}
-                style={{
-                  opacity: 0,
-                  animation: `enter ${DURATION_OF_WEEK_DROP_IN_ANIMATION}ms ease-out ${(i + 1) * INCREMENT_DURATION_OF_WEEK_DROP_IN_ANIMATION}ms forwards`,
-                }}
-              />
-            ))}
-          </>
-        )}
-        {(stage === "oneSmallYear" || stage === "oneFullLife") &&
-          Array.from({ length: 52 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square border-[2px] border-black dark:border-white"
-            />
-          ))}
-        {stage === "oneFullLife" &&
-          Array.from({ length: 88 }).map((_, i) =>
-            Array.from({ length: 52 }).map((_, j) => (
-              <div
-                key={`${i}-${j}`}
-                className="aspect-square border-[2px] border-black dark:border-white"
-                style={{
-                  opacity: 0,
-                  animation: `enter ${DURATION_OF_YEAR_DROP_IN_ANIMATION}ms ease-out ${(i + 1) * INCREMENT_DURATION_OF_YEAR_DROP_IN_ANIMATION}ms forwards`,
-                }}
-              />
-            ))
-          )}
+        {ViewMap[stage] === "1x52" && <ComponentFor1x52 stage={stage} />}
+        {ViewMap[stage] === "90x52" && <ComponentFor90x52 stage={stage} />}
       </div>
     </div>
   );
