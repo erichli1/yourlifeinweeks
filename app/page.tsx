@@ -58,7 +58,7 @@ function UnauthenticatedScreen() {
       setBirthday(new Date(birthdayParam + "T00:00:00"));
 
     const onboardingParam = params.get("onboarding");
-    if (onboardingParam !== "true") setOnboardingComplete(true);
+    if (onboardingParam === "false") setOnboardingComplete(true);
 
     setLoading(false);
   }, []);
