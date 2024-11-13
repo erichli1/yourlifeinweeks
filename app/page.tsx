@@ -18,7 +18,6 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Onboarding } from "./Onboarding";
-
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 const DEFAULT_ZOOM = 1;
 
@@ -51,16 +50,6 @@ function UnauthenticatedScreen() {
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   useEffect(() => {
-    const onboardingTimer = setTimeout(() => {
-      setOnboardingComplete(true);
-    }, 16000);
-
-    return () => {
-      clearTimeout(onboardingTimer);
-    };
-  }, []);
-
-  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const birthdayParam = params.get("birthday");
     if (birthdayParam && isValidDate(birthdayParam)) {
@@ -72,7 +61,10 @@ function UnauthenticatedScreen() {
     onboardingComplete ? (
       <LifeCalendar birthday={birthday} />
     ) : (
-      <Onboarding />
+      <Onboarding
+        birthday={birthday}
+        setOnboardingComplete={setOnboardingComplete}
+      />
     )
   ) : (
     <InitialState />

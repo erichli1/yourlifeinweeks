@@ -1,6 +1,15 @@
 import { cn } from "@/lib/utils";
 import React from "react";
-import { Stage, TitleMap, StageList, DelayMap, ViewMap } from "./utils";
+import {
+  Stage,
+  TitleMap,
+  StageList,
+  DelayMap,
+  ViewMap,
+  getCurrentYearWeekRelativeToBirthday,
+  YearWeek,
+  addOrdinalSuffix,
+} from "./utils";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
@@ -13,10 +22,23 @@ const duration1000Ms = "duration-1000";
 const SIZE_OF_BIG_WEEK = "w-[8rem]";
 const SIZE_OF_WEEK_IN_YEAR = "w-[calc((100vw-102px-2rem)/52)]";
 
-function Title({ stage }: { stage: Stage }) {
+function Title({
+  stage,
+  todayRelativeToBirthday,
+}: {
+  stage: Stage;
+  todayRelativeToBirthday: YearWeek;
+}) {
   const title = TitleMap[stage];
 
   if (!title) return <div>&nbsp;</div>;
+  if (stage === "oneFilledLife")
+    return (
+      <div className={cn(fadeInClasses, duration500Ms)}>
+        Welcome to the {addOrdinalSuffix(todayRelativeToBirthday.week)} week of
+        your {addOrdinalSuffix(todayRelativeToBirthday.year - 1)} year of life.
+      </div>
+    );
   return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
 }
 
@@ -69,25 +91,98 @@ function ComponentFor1x52({ stage }: { stage: Stage }) {
   );
 }
 
-function ComponentFor90x52({ stage }: { stage: Stage }) {
+const MemoizedBox = React.memo(function Box({
+  isFilled,
+  row,
+}: {
+  isFilled: boolean;
+  row: number;
+}) {
+  return (
+    <div
+      className={cn(
+        onboardingSquareClasses,
+        "transition-colors",
+        duration500Ms,
+        isFilled ? "bg-black dark:bg-white" : "bg-background"
+      )}
+      style={{
+        opacity: 0,
+        animation: incrementalAnimation(row),
+      }}
+    />
+  );
+});
+
+function ComponentFor90x52({
+  stage,
+  todayRelativeToBirthday,
+  setOnboardingComplete,
+}: {
+  stage: Stage;
+  todayRelativeToBirthday: YearWeek;
+  setOnboardingComplete: (complete: boolean) => void;
+}) {
+  const [rowFilling, setRowFilling] = React.useState<number>(0);
+  const [columnFilling, setColumnFilling] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    if (stage === "oneFilledLife") {
+      timer = setTimeout(() => {
+        if (
+          todayRelativeToBirthday.year <= rowFilling &&
+          todayRelativeToBirthday.week <= columnFilling
+        )
+          setOnboardingComplete(true);
+        else if (columnFilling < 51) {
+          if (rowFilling === todayRelativeToBirthday.year || rowFilling === 0)
+            setColumnFilling((prev) => prev + 1);
+          else if (
+            rowFilling === todayRelativeToBirthday.year - 1 ||
+            rowFilling === 1
+          )
+            setColumnFilling((prev) => prev + 2);
+          else setColumnFilling((prev) => prev + 4);
+        } else {
+          setRowFilling((prev) => prev + 1);
+          setColumnFilling(0);
+        }
+      }, 5);
+    }
+
+    return () => clearTimeout(timer);
+  }, [
+    columnFilling,
+    rowFilling,
+    setOnboardingComplete,
+    stage,
+    todayRelativeToBirthday,
+  ]);
+
   return (
     <>
       {/* First row of 52 cells, tracked separately for transitions */}
-      {Array.from({ length: 52 }).map((_, i) => (
-        <div key={i} className={cn(onboardingSquareClasses)} />
+      {Array.from({ length: 52 }).map((_, j) => (
+        <MemoizedBox
+          key={j}
+          isFilled={0 < rowFilling || (0 === rowFilling && j < columnFilling)}
+          row={0}
+        />
       ))}
 
       {/* Remaining 89 years of life */}
-      {stage === "oneFullLife" &&
+      {(stage === "oneFullLife" || stage === "oneFilledLife") &&
         Array.from({ length: 89 }).map((_, i) =>
           Array.from({ length: 52 }).map((_, j) => (
-            <div
+            <MemoizedBox
               key={`${i}-${j}`}
-              className={cn(onboardingSquareClasses)}
-              style={{
-                opacity: 0,
-                animation: incrementalAnimation(i),
-              }}
+              isFilled={
+                i + 1 < rowFilling ||
+                (i + 1 === rowFilling && j < columnFilling)
+              }
+              row={i + 1}
             />
           ))
         )}
@@ -95,8 +190,17 @@ function ComponentFor90x52({ stage }: { stage: Stage }) {
   );
 }
 
-export function Onboarding() {
+export function Onboarding({
+  birthday,
+  setOnboardingComplete,
+}: {
+  birthday: Date;
+  setOnboardingComplete: (complete: boolean) => void;
+}) {
   const [stage, setStage] = React.useState<Stage>("oneBigWeek");
+
+  const todayRelativeToBirthday =
+    getCurrentYearWeekRelativeToBirthday(birthday);
 
   React.useEffect(() => {
     const timers = StageList.filter((s) => s !== "oneBigWeek").map((stage) =>
@@ -108,7 +212,7 @@ export function Onboarding() {
 
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
-      <Title stage={stage} />
+      <Title stage={stage} todayRelativeToBirthday={todayRelativeToBirthday} />
 
       <div
         className={cn(
@@ -129,7 +233,13 @@ export function Onboarding() {
         }}
       >
         {ViewMap[stage] === "1x52" && <ComponentFor1x52 stage={stage} />}
-        {ViewMap[stage] === "90x52" && <ComponentFor90x52 stage={stage} />}
+        {ViewMap[stage] === "90x52" && (
+          <ComponentFor90x52
+            stage={stage}
+            todayRelativeToBirthday={todayRelativeToBirthday}
+            setOnboardingComplete={setOnboardingComplete}
+          />
+        )}
       </div>
     </div>
   );
