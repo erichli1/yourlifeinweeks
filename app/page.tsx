@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { Onboarding } from "./Onboarding";
+import { didWeekPass } from "./utils";
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 const DEFAULT_ZOOM = 1;
 
@@ -46,16 +47,28 @@ export default function Home() {
 }
 
 function UnauthenticatedScreen() {
+  const [loading, setLoading] = useState(true);
   const [birthday, setBirthday] = useState<Date | undefined>(undefined);
   const [onboardingComplete, setOnboardingComplete] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const birthdayParam = params.get("birthday");
-    if (birthdayParam && isValidDate(birthdayParam)) {
+    if (birthdayParam && isValidDate(birthdayParam))
       setBirthday(new Date(birthdayParam + "T00:00:00"));
-    }
+
+    const onboardingParam = params.get("onboarding");
+    if (onboardingParam !== "true") setOnboardingComplete(true);
+
+    setLoading(false);
   }, []);
+
+  if (loading)
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
 
   return birthday ? (
     onboardingComplete ? (
@@ -212,30 +225,6 @@ function useDrag(pageRef: React.RefObject<HTMLDivElement>) {
   }, [pageRef, isDragging, startX, startY, scrollLeft, scrollTop]);
 }
 
-function didWeekPass({
-  birthday,
-  today,
-  year,
-  week,
-}: {
-  birthday: Date;
-  today: Date;
-  year: number;
-  week: number;
-}) {
-  // Find the start of the week (Sunday) before the birthday
-  const endOfBirthdayWeek = new Date(birthday);
-  endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
-  endOfBirthdayWeek.setHours(23, 59, 59, 999);
-
-  // Get the offset from end of birthday week to given year and week
-  const endOfGivenWeek = new Date(endOfBirthdayWeek);
-  endOfGivenWeek.setFullYear(endOfBirthdayWeek.getFullYear() + year);
-  endOfGivenWeek.setDate(endOfBirthdayWeek.getDate() + week * 7);
-
-  return endOfGivenWeek < today;
-}
-
 function GridCalendar({ birthday }: { birthday: Date }) {
   const today = new Date();
 
@@ -253,7 +242,7 @@ function GridCalendar({ birthday }: { birthday: Date }) {
       {Array.from({ length: 52 }).map((_, i) => (
         <div
           key={`header-week-${i}`}
-          className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky top-0"
+          className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky top-0"
         >
           {i + 1}
         </div>
@@ -264,7 +253,7 @@ function GridCalendar({ birthday }: { birthday: Date }) {
         <React.Fragment key={`year-${year}`}>
           <div
             key={`header-year-${year}`}
-            className="text-[40px] text-center flex items-center justify-center text-gray-500 overflow-hidden bg-background sticky left-0"
+            className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky left-0"
           >
             {year}
           </div>
