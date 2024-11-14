@@ -100,6 +100,7 @@ function Navbar({ children }: { children: React.ReactNode }) {
                 className="bg-background shadow-lg"
                 variant="outline"
                 size="icon"
+                asChild
               >
                 <LogInIcon className="w-4 h-4" />
               </Button>
@@ -170,10 +171,10 @@ function DatePicker({
 }: {
   date: string;
   setDate: (date: string) => void;
-  onEnter: () => void;
+  onEnter?: () => void;
 }) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && isValidDate(date)) onEnter();
+    if (onEnter && e.key === "Enter" && isValidDate(date)) onEnter();
   };
 
   return (
@@ -399,7 +400,10 @@ function CreateUserFlow() {
   const canSubmit = isValidDate(birthday) && name.length > 0;
 
   const handleSubmit = () => {
-    createUser({ name, birthday: new Date(birthday + "T00:00:00").getTime() });
+    createUser({
+      name,
+      birthday: new Date(birthday + "T00:00:00").getTime(),
+    }).catch(console.error);
   };
 
   return (
@@ -417,13 +421,7 @@ function CreateUserFlow() {
 
       <div className="grid w-full max-w-sm items-center gap-1.5">
         <Label htmlFor="birthday">What&apos;s your birthday?</Label>
-        <DatePicker
-          date={birthday}
-          setDate={setBirthday}
-          onEnter={() => {
-            if (canSubmit) handleSubmit();
-          }}
-        />
+        <DatePicker date={birthday} setDate={setBirthday} />
       </div>
 
       {canSubmit ? (

@@ -39,6 +39,9 @@ module.exports = {
     "@typescript-eslint/no-unsafe-return": "off",
     // END: Allow implicit `any`s
 
+    // Add no-floating-promises rule
+    "@typescript-eslint/no-floating-promises": "error",
+
     // Allow async functions without await
     // for consistency (esp. Convex `handler`s)
     "@typescript-eslint/require-await": "off",
