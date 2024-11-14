@@ -11,3 +11,4 @@ ENG
 QOL
 
 - Better handle grabbing and cursor
+- Make date picker [cuter](https://github.com/dubinc/dub/blob/7abb88671d68d107004678b47fecd7f7ba40d918/apps/web/ui/modals/add-edit-link-modal/expiration-section.tsx)

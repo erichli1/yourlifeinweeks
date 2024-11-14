@@ -94,7 +94,6 @@ function UnauthenticatedScreen() {
   );
 }
 
-// TODO: make date picker cuter (https://github.com/dubinc/dub/blob/7abb88671d68d107004678b47fecd7f7ba40d918/apps/web/ui/modals/add-edit-link-modal/expiration-section.tsx)
 function InitialState() {
   const [date, setDate] = useState<string>("2000-12-11");
 
@@ -168,7 +167,10 @@ function WeekBox({
           )}
         />
       </PopoverTrigger>
-      <PopoverContent side="right" className="w-64 md:w-96 shadow-lg">
+      <PopoverContent
+        side="right"
+        className="w-64 md:w-96 shadow-lg bg-background"
+      >
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex flex-row gap-1 justify-between">
             <div>
