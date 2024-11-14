@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+export const DEFAULT_ZOOM = 1;
+
 export function useDrag(pageRef: React.RefObject<HTMLDivElement>) {
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -66,8 +68,6 @@ export function useDrag(pageRef: React.RefObject<HTMLDivElement>) {
     };
   }, [pageRef, isDragging, startX, startY, scrollLeft, scrollTop]);
 }
-
-export const DEFAULT_ZOOM = 1;
 
 export function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
   const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);

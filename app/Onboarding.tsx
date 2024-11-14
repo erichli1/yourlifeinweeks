@@ -1,15 +1,10 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 import {
-  Stage,
-  TitleMap,
-  StageList,
-  DelayMap,
-  ViewMap,
   getCurrentYearWeekRelativeToBirthday,
   YearWeek,
   addOrdinalSuffix,
-} from "./utils";
+} from "./helpers/utils";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
@@ -21,6 +16,47 @@ const duration500Ms = "duration-500";
 const duration1000Ms = "duration-1000";
 const SIZE_OF_BIG_WEEK = "w-[8rem]";
 const SIZE_OF_WEEK_IN_YEAR = "w-[calc((100vw-102px-2rem)/52)]";
+
+const StageList = [
+  "oneBigWeek",
+  "oneSmallWeek",
+  "oneFullYear",
+  "oneSmallYear",
+  "oneFullLife",
+  "oneFilledLife",
+] as const;
+
+type Stage = (typeof StageList)[number];
+
+type View = "1x52" | "90x52";
+
+const ViewMap: Record<Stage, View> = {
+  oneBigWeek: "1x52",
+  oneSmallWeek: "1x52",
+  oneFullYear: "1x52",
+  oneSmallYear: "90x52",
+  oneFullLife: "90x52",
+  oneFilledLife: "90x52",
+};
+
+const DelayMap: Record<Stage, number> = {
+  oneBigWeek: 0,
+  oneSmallWeek: 2000,
+  oneFullYear: 4000,
+  oneSmallYear: 8000,
+  oneFullLife: 9000,
+  oneFilledLife: 18000,
+};
+
+const TitleMap: Record<Stage, string | null> = {
+  oneBigWeek: "This is one week of your life.",
+  oneSmallWeek: null,
+  oneFullYear: "This is one year of your life.",
+  oneSmallYear: null,
+  oneFullLife: "This is your life.",
+  // PLACEHOLDER TEXT, OVERRIDEN IN COMPONENT
+  oneFilledLife: "This is how you've lived your life.",
+};
 
 function Title({
   stage,

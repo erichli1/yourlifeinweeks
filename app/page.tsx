@@ -18,12 +18,12 @@ import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Onboarding } from "./Onboarding";
 import {
-  didWeekPass,
+  didYearWeekPassRelativeToToday,
   getDatesFromWeekNumber,
   renderDate,
   YearWeek,
-} from "./utils";
-import { useZoom, useDrag, DEFAULT_ZOOM } from "./interactions";
+} from "./helpers/utils";
+import { useZoom, useDrag, DEFAULT_ZOOM } from "./helpers/interactions";
 import {
   Popover,
   PopoverContent,
@@ -196,8 +196,6 @@ function GridCalendar({
   birthday: Date;
   signedIn: boolean;
 }) {
-  const today = new Date();
-
   return (
     <div
       className="grid gap-[10px]"
@@ -229,7 +227,10 @@ function GridCalendar({
           </div>
           {Array.from({ length: 52 }).map((_, week) => (
             <MemoizedWeekBox
-              isFilled={didWeekPass({ birthday, today, year, week })}
+              isFilled={didYearWeekPassRelativeToToday({
+                birthday,
+                yearWeek: { year, week },
+              })}
               signedIn={signedIn}
               yearWeek={{ year, week }}
               birthday={birthday}
