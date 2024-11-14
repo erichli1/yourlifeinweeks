@@ -24,7 +24,7 @@ function getMostRecentBirthday(birthday: Date): Date {
 
   const mostRecentBirthday = new Date(birthday);
   if (mostRecentBirthday.getFullYear() < today.getFullYear())
-    mostRecentBirthday.setFullYear(birthday.getFullYear() - 1);
+    mostRecentBirthday.setFullYear(today.getFullYear() - 1);
 
   return mostRecentBirthday;
 }
