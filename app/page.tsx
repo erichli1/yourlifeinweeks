@@ -225,16 +225,16 @@ function GridCalendar({
           >
             {year}
           </div>
-          {Array.from({ length: 52 }).map((_, week) => (
+          {Array.from({ length: 52 }).map((_, week0Indexed) => (
             <MemoizedWeekBox
               isFilled={didYearWeekPassRelativeToToday({
                 birthday,
-                yearWeek: { year, week },
+                yearWeek: { year, week: week0Indexed + 1 },
               })}
               signedIn={signedIn}
-              yearWeek={{ year, week }}
+              yearWeek={{ year, week: week0Indexed + 1 }}
               birthday={birthday}
-              key={`cell-${year}-${week}`}
+              key={`cell-${year}-${week0Indexed + 1}`}
             />
           ))}
           <div />

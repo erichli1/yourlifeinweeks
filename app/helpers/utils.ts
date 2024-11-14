@@ -15,36 +15,41 @@ export function didYearWeekPassRelativeToToday({
 }
 
 export type YearWeek = {
-  year: number;
-  week: number;
+  year: number; // 0-indexed
+  week: number; // 1-indexed
 };
 
+function getMostRecentBirthday(birthday: Date): Date {
+  const today = new Date();
+
+  const mostRecentBirthday = new Date(birthday);
+  if (mostRecentBirthday.getFullYear() < today.getFullYear())
+    mostRecentBirthday.setFullYear(birthday.getFullYear() - 1);
+
+  return mostRecentBirthday;
+}
+
 export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
-  const endOfBirthdayWeek = new Date(birthday);
-  endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
-  endOfBirthdayWeek.setHours(23, 59, 59, 999);
+  const today = new Date();
 
-  const endOfCurrentWeek = new Date();
-  endOfCurrentWeek.setDate(
-    endOfCurrentWeek.getDate() - endOfCurrentWeek.getDay() + 6
-  );
-  endOfCurrentWeek.setHours(23, 59, 59, 999);
+  const mostRecentBirthday = getMostRecentBirthday(birthday);
 
-  const mostRecentBirthday = new Date(endOfBirthdayWeek);
-  if (mostRecentBirthday.getFullYear() < endOfCurrentWeek.getFullYear())
-    mostRecentBirthday.setFullYear(endOfCurrentWeek.getFullYear() - 1);
+  const numYearsSinceBirthday = today.getFullYear() - birthday.getFullYear();
 
-  const numYearsSinceBirthday =
-    endOfCurrentWeek.getFullYear() - endOfBirthdayWeek.getFullYear();
-
-  const numWeeksSinceMostRecentBirthday = Math.floor(
-    (endOfCurrentWeek.getTime() - mostRecentBirthday.getTime()) /
-      (7 * 24 * 60 * 60 * 1000)
+  // Since the most recent birthday, calculate the number of weeks passed.
+  // If in the extra few days of the new year, it's possible to have 52 weeks passed so
+  // we limit it to 51.
+  const numWeeksSinceMostRecentBirthday = Math.min(
+    Math.floor(
+      (today.getTime() - mostRecentBirthday.getTime()) /
+        (7 * 24 * 60 * 60 * 1000)
+    ),
+    51
   );
 
   return {
     year: numYearsSinceBirthday - 1,
-    week: numWeeksSinceMostRecentBirthday,
+    week: numWeeksSinceMostRecentBirthday + 1,
   };
 }
 
@@ -68,20 +73,21 @@ export function getDatesFromWeekNumber({
   start: Date;
   end: Date;
 } {
-  // Find the start of the week (Sunday) before the birthday
-  const endOfBirthdayWeek = new Date(birthday);
-  endOfBirthdayWeek.setDate(birthday.getDate() - birthday.getDay() + 6);
-  endOfBirthdayWeek.setHours(23, 59, 59, 999);
+  const startOfWeek = new Date(birthday);
+  startOfWeek.setFullYear(birthday.getFullYear() + yearWeek.year);
+  startOfWeek.setDate(startOfWeek.getDate() + (yearWeek.week - 1) * 7);
 
-  // Get the offset from end of birthday week to given year and week
-  const endOfGivenWeek = new Date(endOfBirthdayWeek);
-  endOfGivenWeek.setFullYear(endOfBirthdayWeek.getFullYear() + yearWeek.year);
-  endOfGivenWeek.setDate(endOfBirthdayWeek.getDate() + yearWeek.week * 7);
+  // The last week is a little longer to account for the extra 2-3 days (52 * 7 = 364)
+  const endOfWeek = new Date(startOfWeek);
+  if (yearWeek.week === 52) {
+    const mostRecentBirthday = getMostRecentBirthday(birthday);
+    endOfWeek.setFullYear(mostRecentBirthday.getFullYear() + 1);
+    endOfWeek.setDate(mostRecentBirthday.getDate() - 1);
+  } else {
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+  }
 
-  const startOfGivenWeek = new Date(endOfGivenWeek);
-  startOfGivenWeek.setDate(endOfGivenWeek.getDate() - 6);
-
-  return { start: startOfGivenWeek, end: endOfGivenWeek };
+  return { start: startOfWeek, end: endOfWeek };
 }
 
 export function renderDate(date: Date, format: "MM/DD/YY") {
