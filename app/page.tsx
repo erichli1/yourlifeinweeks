@@ -10,17 +10,27 @@ import {
 import { api } from "@/convex/_generated/api";
 import { Code } from "@/components/typography/code";
 import { Link } from "@/components/typography/link";
-import { SignInButton } from "@clerk/clerk-react";
+import { SignInButton, useUser } from "@clerk/clerk-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { ChevronRight, MinimizeIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ChevronRight, LogInIcon, MinimizeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Onboarding } from "./Onboarding";
-import { didWeekPass } from "./utils";
+import {
+  didWeekPass,
+  getDatesFromWeekNumber,
+  renderDate,
+  YearWeek,
+} from "./utils";
+import { useZoom, useDrag, DEFAULT_ZOOM } from "./interactions";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
-const DEFAULT_ZOOM = 1;
 
 const isValidDate = (dateStr: string) => {
   const parsedDate = Date.parse(dateStr);
@@ -127,105 +137,65 @@ function InitialState() {
   );
 }
 
-function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
-  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
+function WeekBox({
+  isFilled,
+  yearWeek,
+  signedIn,
+  birthday,
+}: {
+  isFilled: boolean;
+  yearWeek: YearWeek;
+  signedIn: boolean;
+  birthday: Date;
+}) {
+  const { start, end } = getDatesFromWeekNumber({
+    birthday,
+    yearWeek,
+  });
 
-  const resetZoom = () => setZoom(DEFAULT_ZOOM);
-
-  // Handle zooming in and out
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (e.altKey) {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        setZoom((prevZoom) =>
-          Math.min(Math.max(prevZoom * delta, DEFAULT_ZOOM), 10)
-        );
-      }
-    };
-
-    // Add event listener for zooming
-    const pageElement = pageRef.current;
-    if (pageElement)
-      pageElement.addEventListener("wheel", handleWheel, { passive: false });
-
-    // Remove event listener on cleanup
-    return () => {
-      if (pageElement) pageElement.removeEventListener("wheel", handleWheel);
-    };
-  }, [pageRef]);
-
-  return { zoom, resetZoom };
+  return (
+    <Popover>
+      <PopoverTrigger>
+        <div
+          className={cn(
+            "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
+            isFilled ? "bg-black dark:bg-white" : ""
+          )}
+        />
+      </PopoverTrigger>
+      <PopoverContent side="right" className="w-64 md:w-96 shadow-lg">
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-row gap-1 justify-between">
+            <div>
+              Year {yearWeek.year}, Week {yearWeek.week}
+            </div>
+            <div>
+              {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
+            </div>
+          </div>
+          {!signedIn && (
+            <div>
+              <SignInButton mode="modal">
+                <span className="underline cursor-pointer">Sign in</span>
+              </SignInButton>{" "}
+              to add moments
+            </div>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
-function useDrag(pageRef: React.RefObject<HTMLDivElement>) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [startY, setStartY] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-  const [scrollTop, setScrollTop] = useState(0);
+const MemoizedWeekBox = React.memo(WeekBox);
 
-  useEffect(() => {
-    const handleMouseDown = (e: MouseEvent) => {
-      if (!e.altKey) return;
-
-      setIsDragging(true);
-      const element = pageRef.current;
-      if (!element) return;
-
-      setStartX(e.pageX - element.offsetLeft);
-      setStartY(e.pageY - element.offsetTop);
-      setScrollLeft(element.scrollLeft);
-      setScrollTop(element.scrollTop);
-      element.style.cursor = "grabbing";
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      const element = pageRef.current;
-      if (!element) return;
-      element.style.cursor = "default";
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !e.altKey) {
-        if (isDragging) handleMouseUp();
-        return;
-      }
-
-      e.preventDefault();
-      const element = pageRef.current;
-      if (!element) return;
-
-      const x = e.pageX - element.offsetLeft;
-      const y = e.pageY - element.offsetTop;
-      const walkX = (x - startX) * 1.5;
-      const walkY = (y - startY) * 1.5;
-
-      element.scrollLeft = scrollLeft - walkX;
-      element.scrollTop = scrollTop - walkY;
-    };
-
-    const pageElement = pageRef.current;
-    if (pageElement) {
-      pageElement.addEventListener("mousedown", handleMouseDown);
-      pageElement.addEventListener("mouseleave", handleMouseUp);
-      pageElement.addEventListener("mouseup", handleMouseUp);
-      pageElement.addEventListener("mousemove", handleMouseMove);
-    }
-
-    return () => {
-      if (pageElement) {
-        pageElement.removeEventListener("mousedown", handleMouseDown);
-        pageElement.removeEventListener("mouseleave", handleMouseUp);
-        pageElement.removeEventListener("mouseup", handleMouseUp);
-        pageElement.removeEventListener("mousemove", handleMouseMove);
-      }
-    };
-  }, [pageRef, isDragging, startX, startY, scrollLeft, scrollTop]);
-}
-
-function GridCalendar({ birthday }: { birthday: Date }) {
+function GridCalendar({
+  birthday,
+  signedIn,
+}: {
+  birthday: Date;
+  signedIn: boolean;
+}) {
   const today = new Date();
 
   return (
@@ -258,13 +228,11 @@ function GridCalendar({ birthday }: { birthday: Date }) {
             {year}
           </div>
           {Array.from({ length: 52 }).map((_, week) => (
-            <div
-              className={cn(
-                "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-                didWeekPass({ birthday, today, year, week })
-                  ? "bg-black dark:bg-white"
-                  : ""
-              )}
+            <MemoizedWeekBox
+              isFilled={didWeekPass({ birthday, today, year, week })}
+              signedIn={signedIn}
+              yearWeek={{ year, week }}
+              birthday={birthday}
               key={`cell-${year}-${week}`}
             />
           ))}
@@ -282,6 +250,8 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
   const { zoom, resetZoom } = useZoom(pageRef);
   useDrag(pageRef);
 
+  const { user } = useUser();
+
   return (
     <div
       className="h-screen overflow-auto flex cursor-grab active:cursor-grabbing"
@@ -296,18 +266,30 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
           zoom: zoom * 0.1,
         }}
       >
-        <MemoizedGridCalendar birthday={birthday} />
+        <MemoizedGridCalendar birthday={birthday} signedIn={!!user} />
       </div>
-      {zoom !== DEFAULT_ZOOM && (
-        <Button
-          className="fixed bottom-0 right-0 m-2 bg-background shadow-lg"
-          variant="outline"
-          size="icon"
-          onClick={resetZoom}
-        >
-          <MinimizeIcon className="w-4 h-4" />
-        </Button>
-      )}
+      <div className="fixed bottom-0 right-0 m-2 flex flex-row gap-1">
+        {zoom !== DEFAULT_ZOOM && (
+          <Button
+            className="bg-background shadow-lg"
+            variant="outline"
+            size="icon"
+            onClick={resetZoom}
+          >
+            <MinimizeIcon className="w-4 h-4" />
+          </Button>
+        )}
+
+        <SignInButton mode="modal">
+          <Button
+            className="bg-background shadow-lg"
+            variant="outline"
+            size="icon"
+          >
+            <LogInIcon className="w-4 h-4" />
+          </Button>
+        </SignInButton>
+      </div>
     </div>
   );
 }
