@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Authenticated,
   Unauthenticated,
@@ -84,26 +84,27 @@ function Navbar({ children }: { children: React.ReactNode }) {
         {user ? (
           <WrapInTooltip text="Sign out">
             <SignOutButton>
-              <Button
-                className="bg-background shadow-lg"
-                variant="outline"
-                size="icon"
+              <div
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon" }),
+                  "bg-background shadow-md"
+                )}
               >
                 <LogOutIcon className="h-4 w-4" />
-              </Button>
+              </div>
             </SignOutButton>
           </WrapInTooltip>
         ) : (
           <WrapInTooltip text="Sign in">
             <SignInButton mode="modal" redirectUrl={window.location.href}>
-              <Button
-                className="bg-background shadow-lg"
-                variant="outline"
-                size="icon"
-                asChild
+              <div
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "icon" }),
+                  "bg-background shadow-md"
+                )}
               >
                 <LogInIcon className="w-4 h-4" />
-              </Button>
+              </div>
             </SignInButton>
           </WrapInTooltip>
         )}
