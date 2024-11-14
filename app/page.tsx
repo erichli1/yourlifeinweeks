@@ -153,13 +153,18 @@ function WeekBox({
     yearWeek,
   });
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger>
         <div
           className={cn(
-            "aspect-square border-[2px] border-black dark:border-white flex items-center justify-center",
-            isFilled ? "bg-black dark:bg-white" : ""
+            "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg",
+            "transition-colors transition-transform",
+            isFilled ? "bg-filled" : "bg-empty",
+            isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
+            isOpen && (isFilled ? "bg-filled" : "bg-empty")
           )}
         />
       </PopoverTrigger>

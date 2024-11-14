@@ -9,8 +9,7 @@ import {
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
 
-const onboardingSquareClasses =
-  "aspect-square border-[1px] border-black dark:border-white";
+const onboardingSquareClasses = "aspect-square border-[1px] border-filled";
 const fadeInClasses = "animate-in fade-in";
 const duration500Ms = "duration-500";
 const duration1000Ms = "duration-1000";
@@ -140,7 +139,7 @@ const MemoizedBox = React.memo(function Box({
         onboardingSquareClasses,
         "transition-colors",
         duration500Ms,
-        isFilled ? "bg-black dark:bg-white" : "bg-background"
+        isFilled ? "bg-filled" : "bg-background"
       )}
       style={{
         opacity: 0,
