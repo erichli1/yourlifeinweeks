@@ -3,10 +3,12 @@
 P0
 
 - Support adding items when you sign in
+- Get more info from user (ex: hopes and dreams)
 
 ENG
 
 - Change onboarding stages to be state managed rather than timeout based
+- Add way to push elements to the "navbar" from child components
 
 QOL
 

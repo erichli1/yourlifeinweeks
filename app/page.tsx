@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import {
   Authenticated,
   Unauthenticated,
-  useMutation,
   useQuery,
+  useMutation,
 } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Code } from "@/components/typography/code";
-import { Link } from "@/components/typography/link";
-import { SignInButton, useUser } from "@clerk/clerk-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SignInButton, SignOutButton, useUser } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
-import { ChevronRight, LogInIcon, MinimizeIcon } from "lucide-react";
+import {
+  ChevronRight,
+  LogInIcon,
+  LogOutIcon,
+  MinimizeIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { Onboarding } from "./Onboarding";
@@ -29,6 +31,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Label } from "@/components/ui/label";
 
 const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
 
@@ -41,16 +50,81 @@ const isValidDate = (dateStr: string) => {
   );
 };
 
+function WrapInTooltip({
+  children,
+  text,
+}: {
+  children: React.ReactNode;
+  text: string;
+}) {
+  return (
+    <Tooltip delayDuration={50}>
+      <TooltipTrigger>{children}</TooltipTrigger>
+      <TooltipContent className="bg-background shadow-md text-primary border-input">
+        <p>{text}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+function Navbar({ children }: { children: React.ReactNode }) {
+  const { user } = useUser();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return <div>{children}</div>;
+
+  return (
+    <div>
+      {children}
+      <div className="fixed bottom-0 right-0 m-2 flex flex-row gap-1">
+        {user ? (
+          <WrapInTooltip text="Sign out">
+            <SignOutButton>
+              <Button
+                className="bg-background shadow-lg"
+                variant="outline"
+                size="icon"
+              >
+                <LogOutIcon className="h-4 w-4" />
+              </Button>
+            </SignOutButton>
+          </WrapInTooltip>
+        ) : (
+          <WrapInTooltip text="Sign in">
+            <SignInButton mode="modal" redirectUrl={window.location.href}>
+              <Button
+                className="bg-background shadow-lg"
+                variant="outline"
+                size="icon"
+              >
+                <LogInIcon className="w-4 h-4" />
+              </Button>
+            </SignInButton>
+          </WrapInTooltip>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <>
       <main className="flex flex-col">
-        <Authenticated>
-          <SignedInContent />
-        </Authenticated>
-        <Unauthenticated>
-          <UnauthenticatedScreen />
-        </Unauthenticated>
+        <TooltipProvider>
+          <Navbar>
+            <Authenticated>
+              <SignedInContent />
+            </Authenticated>
+            <Unauthenticated>
+              <UnauthenticatedScreen />
+            </Unauthenticated>
+          </Navbar>
+        </TooltipProvider>
       </main>
     </>
   );
@@ -73,12 +147,7 @@ function UnauthenticatedScreen() {
     setLoading(false);
   }, []);
 
-  if (loading)
-    return (
-      <div className="h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+  if (loading) return <LoadingScreen />;
 
   return birthday ? (
     onboardingComplete ? (
@@ -94,6 +163,31 @@ function UnauthenticatedScreen() {
   );
 }
 
+function DatePicker({
+  date,
+  setDate,
+  onEnter,
+}: {
+  date: string;
+  setDate: (date: string) => void;
+  onEnter: () => void;
+}) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && isValidDate(date)) onEnter();
+  };
+
+  return (
+    <Input
+      type="date"
+      placeholder="Date"
+      className="w-fit cursor-text"
+      value={date}
+      onChange={(e) => setDate(e.target.value)}
+      onKeyDown={handleKeyDown}
+    />
+  );
+}
+
 function InitialState() {
   const [date, setDate] = useState<string>("2000-12-11");
 
@@ -101,22 +195,15 @@ function InitialState() {
     window.location.search = `?birthday=${date}`;
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && isValidDate(date)) updateSearchParams();
-  };
-
   return (
     <div className="flex items-center justify-center h-screen p-4">
       <div className="flex flex-col gap-2 max-w-md">
         <div>Your life map awaits — just enter your birthday.</div>
         <div className="flex flex-row gap-2">
-          <Input
-            type="date"
-            placeholder="Date"
-            className="w-fit cursor-text"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            onKeyDown={handleKeyDown}
+          <DatePicker
+            date={date}
+            setDate={setDate}
+            onEnter={updateSearchParams}
           />
           {isValidDate(date) ? (
             <Button size="icon" onClick={updateSearchParams} variant="outline">
@@ -182,7 +269,10 @@ function WeekBox({
           </div>
           {!signedIn && (
             <div>
-              <SignInButton mode="modal">
+              <SignInButton
+                mode="modal"
+                redirectUrl={window ? window.location.href : undefined}
+              >
                 <span className="underline cursor-pointer">Sign in</span>
               </SignInButton>{" "}
               to add moments
@@ -276,89 +366,95 @@ function LifeCalendar({ birthday }: { birthday: Date }) {
       >
         <MemoizedGridCalendar birthday={birthday} signedIn={!!user} />
       </div>
-      <div className="fixed bottom-0 right-0 m-2 flex flex-row gap-1">
+      <div className="fixed bottom-0 left-0 m-2 flex flex-row gap-1">
         {zoom !== DEFAULT_ZOOM && (
-          <Button
-            className="bg-background shadow-lg"
-            variant="outline"
-            size="icon"
-            onClick={resetZoom}
-          >
-            <MinimizeIcon className="w-4 h-4" />
-          </Button>
+          <WrapInTooltip text="Reset zoom">
+            <Button
+              className="bg-background shadow-lg"
+              variant="outline"
+              size="icon"
+              onClick={resetZoom}
+            >
+              <MinimizeIcon className="w-4 h-4" />
+            </Button>
+          </WrapInTooltip>
         )}
-
-        <SignInButton mode="modal">
-          <Button
-            className="bg-background shadow-lg"
-            variant="outline"
-            size="icon"
-          >
-            <LogInIcon className="w-4 h-4" />
-          </Button>
-        </SignInButton>
       </div>
     </div>
   );
 }
 
-function SignedInContent() {
-  const { viewer, numbers } =
-    useQuery(api.myFunctions.listNumbers, {
-      count: 10,
-    }) ?? {};
-  const addNumber = useMutation(api.myFunctions.addNumber);
+function CreateUserFlow() {
+  const [birthday, setBirthday] = useState<string>("");
+  const [name, setName] = useState<string>("");
 
-  if (viewer === undefined || numbers === undefined) {
-    return (
-      <>
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-full" />
-      </>
-    );
-  }
+  const createUser = useMutation(api.myFunctions.createUser);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const birthdayParam = params.get("birthday");
+    if (birthdayParam && isValidDate(birthdayParam)) setBirthday(birthdayParam);
+  }, []);
+
+  const canSubmit = isValidDate(birthday) && name.length > 0;
+
+  const handleSubmit = () => {
+    createUser({ name, birthday: new Date(birthday + "T00:00:00").getTime() });
+  };
 
   return (
-    <>
-      <p>Welcome {viewer ?? "N/A"}!</p>
-      <p>
-        Click the button below and open this page in another window - this data
-        is persisted in the Convex cloud database!
-      </p>
-      <p>
-        <Button
-          onClick={() => {
-            void addNumber({ value: Math.floor(Math.random() * 10) });
+    <div className="flex flex-col gap-4 items-center justify-center h-screen p-4">
+      <div className="grid w-full max-w-sm gap-1.5">
+        <Label htmlFor="name">What&apos;s your name?</Label>
+        <Input
+          type="text"
+          id="name"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+
+      <div className="grid w-full max-w-sm items-center gap-1.5">
+        <Label htmlFor="birthday">What&apos;s your birthday?</Label>
+        <DatePicker
+          date={birthday}
+          setDate={setBirthday}
+          onEnter={() => {
+            if (canSubmit) handleSubmit();
           }}
-        >
-          Add a random number
-        </Button>
-      </p>
-      <p>
-        Numbers:{" "}
-        {numbers?.length === 0
-          ? "Click the button!"
-          : numbers?.join(", ") ?? "..."}
-      </p>
-      <p>
-        Edit <Code>convex/myFunctions.ts</Code> to change your backend
-      </p>
-      <p>
-        Edit <Code>app/page.tsx</Code> to change your frontend
-      </p>
-      <p>
-        Check out{" "}
-        <Link target="_blank" href="https://docs.convex.dev/home">
-          Convex docs
-        </Link>
-      </p>
-      <p>
-        To build a full page layout copy one of the included{" "}
-        <Link target="_blank" href="/layouts">
-          layouts
-        </Link>
-      </p>
-    </>
+        />
+      </div>
+
+      {canSubmit ? (
+        <div className="w-full max-w-sm">
+          <Button onClick={handleSubmit}>All done</Button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SignedInContent() {
+  const user = useQuery(api.myFunctions.getUser);
+
+  // Remove URL params if user is found
+  useEffect(() => {
+    if (user) {
+      const url = new URL(window.location.href);
+      url.search = "";
+      window.history.replaceState({}, "", url);
+    }
+  }, [user]);
+
+  if (user === undefined) return <LoadingScreen />;
+  if (user === null) return <CreateUserFlow />;
+
+  return <LifeCalendar birthday={new Date(user.birthday)} />;
+}
+
+function LoadingScreen() {
+  return (
+    <div className="h-screen flex items-center justify-center">Loading...</div>
   );
 }
