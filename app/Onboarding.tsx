@@ -71,7 +71,7 @@ function Title({
     return (
       <div className={cn(fadeInClasses, duration500Ms)}>
         Welcome to the {addOrdinalSuffix(todayRelativeToBirthday.week)} week of
-        your {addOrdinalSuffix(todayRelativeToBirthday.year - 1)} year of life.
+        your {addOrdinalSuffix(todayRelativeToBirthday.year)} year of life.
       </div>
     );
   return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
@@ -170,7 +170,9 @@ function ComponentFor90x52({
           todayRelativeToBirthday.year <= rowFilling &&
           todayRelativeToBirthday.week <= columnFilling
         )
-          setOnboardingComplete(true);
+          setTimeout(() => {
+            setOnboardingComplete(true);
+          }, 5000);
         else if (columnFilling < 51) {
           if (rowFilling === todayRelativeToBirthday.year || rowFilling === 0)
             setColumnFilling((prev) => prev + 1);

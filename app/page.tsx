@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 
-const MIN_BIRTHDAY_DATE = new Date("1930-01-01");
+const MIN_BIRTHDAY_DATE = new Date("1940-01-01");
 
 const isValidDate = (dateStr: string) => {
   const parsedDate = Date.parse(dateStr);

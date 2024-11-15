@@ -23,8 +23,12 @@ function getMostRecentBirthday(birthday: Date): Date {
   const today = new Date();
 
   const mostRecentBirthday = new Date(birthday);
-  if (mostRecentBirthday.getFullYear() < today.getFullYear())
+  const birthdayThisYear = new Date(birthday);
+  birthdayThisYear.setFullYear(today.getFullYear());
+
+  if (birthdayThisYear.getTime() > today.getTime())
     mostRecentBirthday.setFullYear(today.getFullYear() - 1);
+  else mostRecentBirthday.setFullYear(today.getFullYear());
 
   return mostRecentBirthday;
 }
@@ -34,7 +38,8 @@ export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
 
   const mostRecentBirthday = getMostRecentBirthday(birthday);
 
-  const numYearsSinceBirthday = today.getFullYear() - birthday.getFullYear();
+  let yearsOld = today.getFullYear() - birthday.getFullYear();
+  if (today.getFullYear() === mostRecentBirthday.getFullYear()) yearsOld += 1;
 
   // Since the most recent birthday, calculate the number of weeks passed.
   // If in the extra few days of the new year, it's possible to have 52 weeks passed so
@@ -48,7 +53,7 @@ export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
   );
 
   return {
-    year: numYearsSinceBirthday - 1,
+    year: yearsOld - 1,
     week: numWeeksSinceMostRecentBirthday + 1,
   };
 }
