@@ -154,7 +154,7 @@ export function LifeCalendar({ user }: { user: User }) {
       </div>
       <div className="fixed bottom-0 left-0 m-2 flex flex-row gap-1">
         {zoom !== DEFAULT_ZOOM && (
-          <WrapInTooltip text="Reset zoom">
+          <WrapInTooltip text="Reset zoom" asChild>
             <Button
               className="bg-background shadow-lg"
               variant="outline"
