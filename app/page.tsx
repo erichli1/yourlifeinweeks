@@ -18,6 +18,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { LifeCalendar } from "./LifeCalendar";
 import { WrapInTooltip } from "./helpers/components";
+import { User } from "./helpers/utils";
 
 const MIN_BIRTHDAY_DATE = new Date("1940-01-01");
 
@@ -114,18 +115,22 @@ function UnauthenticatedScreen() {
 
   if (loading) return <LoadingScreen />;
 
-  return birthday ? (
-    onboardingComplete ? (
-      <LifeCalendar birthday={birthday} />
-    ) : (
+  if (!birthday) return <InitialState />;
+
+  if (!onboardingComplete)
+    return (
       <Onboarding
         birthday={birthday}
         setOnboardingComplete={setOnboardingComplete}
       />
-    )
-  ) : (
-    <InitialState />
-  );
+    );
+
+  const user: User = {
+    signedIn: false,
+    birthday,
+  };
+
+  return <LifeCalendar user={user} />;
 }
 
 function DatePicker({
@@ -251,7 +256,15 @@ function SignedInContent() {
   if (user === undefined) return <LoadingScreen />;
   if (user === null) return <CreateUserFlow />;
 
-  return <LifeCalendar birthday={new Date(user.birthday)} />;
+  return (
+    <LifeCalendar
+      user={{
+        signedIn: true,
+        birthday: new Date(user.birthday),
+        user,
+      }}
+    />
+  );
 }
 
 function LoadingScreen() {

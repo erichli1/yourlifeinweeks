@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { SignInButton, useUser } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/clerk-react";
 import { MinimizeIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, { useRef, useState } from "react";
@@ -18,20 +18,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { WrapInTooltip } from "./helpers/components";
+import { User } from "./helpers/utils";
 
 function WeekBox({
   isFilled,
   yearWeek,
-  signedIn,
-  birthday,
+  user,
 }: {
   isFilled: boolean;
   yearWeek: YearWeek;
-  signedIn: boolean;
-  birthday: Date;
+  user: User;
 }) {
   const { start, end } = getDatesFromWeekNumber({
-    birthday,
+    birthday: user.birthday,
     yearWeek,
   });
 
@@ -63,7 +62,7 @@ function WeekBox({
               {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
             </div>
           </div>
-          {!signedIn && (
+          {!user.signedIn && (
             <div>
               <SignInButton
                 mode="modal"
@@ -82,13 +81,7 @@ function WeekBox({
 
 const MemoizedWeekBox = React.memo(WeekBox);
 
-function GridCalendar({
-  birthday,
-  signedIn,
-}: {
-  birthday: Date;
-  signedIn: boolean;
-}) {
+function GridCalendar({ user }: { user: User }) {
   return (
     <div
       className="grid gap-[10px]"
@@ -121,12 +114,11 @@ function GridCalendar({
           {Array.from({ length: 52 }).map((_, week0Indexed) => (
             <MemoizedWeekBox
               isFilled={didYearWeekPassRelativeToToday({
-                birthday,
+                birthday: user.birthday,
                 yearWeek: { year, week: week0Indexed + 1 },
               })}
-              signedIn={signedIn}
+              user={user}
               yearWeek={{ year, week: week0Indexed + 1 }}
-              birthday={birthday}
               key={`cell-${year}-${week0Indexed + 1}`}
             />
           ))}
@@ -139,12 +131,10 @@ function GridCalendar({
 
 const MemoizedGridCalendar = React.memo(GridCalendar);
 
-export function LifeCalendar({ birthday }: { birthday: Date }) {
+export function LifeCalendar({ user }: { user: User }) {
   const pageRef = useRef<HTMLDivElement>(null);
   const { zoom, resetZoom } = useZoom(pageRef);
   useDrag(pageRef);
-
-  const { user } = useUser();
 
   return (
     <div
@@ -160,7 +150,7 @@ export function LifeCalendar({ birthday }: { birthday: Date }) {
           zoom: zoom * 0.1,
         }}
       >
-        <MemoizedGridCalendar birthday={birthday} signedIn={!!user} />
+        <MemoizedGridCalendar user={user} />
       </div>
       <div className="fixed bottom-0 left-0 m-2 flex flex-row gap-1">
         {zoom !== DEFAULT_ZOOM && (
