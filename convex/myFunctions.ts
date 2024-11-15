@@ -32,3 +32,43 @@ export const createUser = mutation({
     });
   },
 });
+
+export const getMomentsForYearWeek = query({
+  args: {
+    year: v.number(),
+    week: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx, {});
+    if (!user) throw new Error("NoCreatedAccount");
+
+    return await ctx.db
+      .query("moments")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("year"), args.year),
+          q.eq(q.field("week"), args.week)
+        )
+      )
+      .collect();
+  },
+});
+
+export const createMomentForYearWeek = mutation({
+  args: {
+    year: v.number(),
+    week: v.number(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await getUser(ctx, {});
+    if (!user) throw new Error("NoCreatedAccount");
+
+    await ctx.db.insert("moments", {
+      userId: user._id,
+      year: args.year,
+      week: args.week,
+      name: args.name,
+    });
+  },
+});

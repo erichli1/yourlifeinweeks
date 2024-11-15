@@ -19,6 +19,94 @@ import {
 } from "@/components/ui/popover";
 import { WrapInTooltip } from "./helpers/components";
 import { User } from "./helpers/utils";
+import { api } from "@/convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+
+function Moment({
+  moment,
+}: {
+  moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
+}) {
+  return <div className="text-xl font-bold">{moment.name}</div>;
+}
+
+function AuthenticatedWeekPopoverContent({ yearWeek }: { yearWeek: YearWeek }) {
+  const createMoment = useMutation(api.myFunctions.createMomentForYearWeek);
+  const moments = useQuery(api.myFunctions.getMomentsForYearWeek, {
+    year: yearWeek.year,
+    week: yearWeek.week,
+  });
+
+  if (moments === undefined) return <p>Loading...</p>;
+
+  return (
+    <>
+      {moments.map((m) => (
+        <Moment moment={m} key={m._id} />
+      ))}
+      <div>
+        <Button
+          variant="outline"
+          onClick={() => {
+            createMoment({
+              name: "something big",
+              year: yearWeek.year,
+              week: yearWeek.week,
+            }).catch(console.error);
+          }}
+        >
+          Add moment
+        </Button>
+      </div>
+    </>
+  );
+}
+
+function UnauthenticatedWeekPopoverContent() {
+  return (
+    <div>
+      <SignInButton
+        mode="modal"
+        redirectUrl={window ? window.location.href : undefined}
+      >
+        <span className="underline cursor-pointer">Sign in</span>
+      </SignInButton>{" "}
+      to add moments
+    </div>
+  );
+}
+
+function WeekPopoverContainer({
+  user,
+  yearWeek,
+}: {
+  user: User;
+  yearWeek: YearWeek;
+}) {
+  const { start, end } = getDatesFromWeekNumber({
+    birthday: user.birthday,
+    yearWeek,
+  });
+
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <div className="flex flex-row gap-1 justify-between">
+        <div>
+          Year {yearWeek.year}, Week {yearWeek.week}
+        </div>
+        <div>
+          {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
+        </div>
+      </div>
+
+      {user.signedIn ? (
+        <AuthenticatedWeekPopoverContent yearWeek={yearWeek} />
+      ) : (
+        <UnauthenticatedWeekPopoverContent />
+      )}
+    </div>
+  );
+}
 
 function WeekBox({
   isFilled,
@@ -29,11 +117,6 @@ function WeekBox({
   yearWeek: YearWeek;
   user: User;
 }) {
-  const { start, end } = getDatesFromWeekNumber({
-    birthday: user.birthday,
-    yearWeek,
-  });
-
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -53,27 +136,7 @@ function WeekBox({
         side="right"
         className="w-64 md:w-96 shadow-lg bg-background"
       >
-        <div className="flex flex-col gap-2 text-sm">
-          <div className="flex flex-row gap-1 justify-between">
-            <div>
-              Year {yearWeek.year}, Week {yearWeek.week}
-            </div>
-            <div>
-              {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
-            </div>
-          </div>
-          {!user.signedIn && (
-            <div>
-              <SignInButton
-                mode="modal"
-                redirectUrl={window ? window.location.href : undefined}
-              >
-                <span className="underline cursor-pointer">Sign in</span>
-              </SignInButton>{" "}
-              to add moments
-            </div>
-          )}
-        </div>
+        <WeekPopoverContainer user={user} yearWeek={yearWeek} />
       </PopoverContent>
     </Popover>
   );

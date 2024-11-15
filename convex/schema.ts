@@ -8,6 +8,12 @@ export default defineSchema(
       birthday: v.number(),
       tokenIdentifier: v.string(),
     }),
+    moments: defineTable({
+      userId: v.id("users"),
+      year: v.number(),
+      week: v.number(),
+      name: v.string(),
+    }),
   },
   { schemaValidation: true }
 );
