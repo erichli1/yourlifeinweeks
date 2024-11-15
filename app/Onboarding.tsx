@@ -4,7 +4,7 @@ import {
   getCurrentYearWeekRelativeToBirthday,
   YearWeek,
   addOrdinalSuffix,
-} from "./helpers/utils";
+} from "./helpers/date-utils";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
