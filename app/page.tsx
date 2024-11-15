@@ -252,7 +252,7 @@ function WeekBox({
             "transition-colors transition-transform",
             isFilled ? "bg-filled" : "bg-empty",
             isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
-            isOpen && (isFilled ? "bg-filled" : "bg-empty")
+            isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
           )}
         />
       </PopoverTrigger>
