@@ -209,7 +209,7 @@ function WeekBox({
   }, []);
 
   const debouncedSendRequest = useMemo(() => {
-    return debounce(modifyHoveringState, 500);
+    return debounce(modifyHoveringState, 250);
   }, [modifyHoveringState]);
 
   return (
