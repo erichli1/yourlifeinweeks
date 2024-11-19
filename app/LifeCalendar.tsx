@@ -229,7 +229,7 @@ function WeekBox({
               onMouseLeave={() => debouncedSendRequest(false)}
             />
           </PopoverTrigger>
-          <PopoverContent className="bg-background w-fit">
+          <PopoverContent className="bg-background w-fit p-2" side="top">
             <WeekBoxPopover user={user} yearWeek={yearWeek} />
           </PopoverContent>
         </Popover>
