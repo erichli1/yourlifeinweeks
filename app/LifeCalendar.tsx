@@ -36,6 +36,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 
 function Moment({
   moment,
@@ -62,7 +63,7 @@ function Moment({
   }, [sendRequest]);
 
   return (
-    <>
+    <div className="flex flex-col gap-1">
       <div className="flex flex-row gap-2 justify-between items-center">
         <Input
           value={name}
@@ -85,8 +86,13 @@ function Moment({
           <TrashIcon className="w-4 h-4" />
         </Button>
       </div>
+
+      <Textarea
+        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+        autoSize
+      />
       <Separator />
-    </>
+    </div>
   );
 }
 
