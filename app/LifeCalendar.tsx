@@ -31,6 +31,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 function Moment({
   moment,
@@ -165,6 +170,28 @@ function WeekContentContainer({
   );
 }
 
+function WeekBoxPopover({
+  user,
+  yearWeek,
+}: {
+  user: User;
+  yearWeek: YearWeek;
+}) {
+  const { start, end } = getDatesFromWeekNumber({
+    birthday: user.birthday,
+    yearWeek,
+  });
+
+  return (
+    <div className="text-xs">
+      <span className="font-bold">
+        Year {yearWeek.year}, Week {yearWeek.week}
+      </span>{" "}
+      ({renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")})
+    </div>
+  );
+}
+
 function WeekBox({
   isFilled,
   yearWeek,
@@ -175,19 +202,37 @@ function WeekBox({
   user: User;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+
+  const modifyHoveringState = useCallback((value: boolean) => {
+    setIsHovering(value);
+  }, []);
+
+  const debouncedSendRequest = useMemo(() => {
+    return debounce(modifyHoveringState, 500);
+  }, [modifyHoveringState]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger>
-        <div
-          className={cn(
-            "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg text-4xl",
-            "transition-colors transition-transform",
-            isFilled ? "bg-filled" : "bg-empty",
-            isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
-            isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
-          )}
-        />
+        <Popover open={isHovering}>
+          <PopoverTrigger asChild>
+            <div
+              className={cn(
+                "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg text-4xl",
+                "transition-colors transition-transform",
+                isFilled ? "bg-filled" : "bg-empty",
+                isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
+                isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
+              )}
+              onMouseEnter={() => debouncedSendRequest(true)}
+              onMouseLeave={() => debouncedSendRequest(false)}
+            />
+          </PopoverTrigger>
+          <PopoverContent className="bg-background w-fit">
+            <WeekBoxPopover user={user} yearWeek={yearWeek} />
+          </PopoverContent>
+        </Popover>
       </SheetTrigger>
       <SheetContent side="right">
         {/* Radix requires title to be set */}
