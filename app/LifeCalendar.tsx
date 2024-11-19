@@ -38,6 +38,46 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 
+function JournalEntry({
+  journalEntry,
+}: {
+  journalEntry: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number]["journalEntries"][number];
+}) {
+  const [entry, setEntry] = useState(journalEntry.entry);
+  const updateJournalEntry = useMutation(api.myFunctions.updateJournalEntry);
+  useEffect(() => {
+    setEntry(journalEntry.entry);
+  }, [journalEntry.entry]);
+
+  const updateJournalEntryCallback = useCallback(
+    (value: string) => {
+      updateJournalEntry({
+        journalEntryId: journalEntry._id,
+        entry: value,
+      }).catch(console.error);
+    },
+    [journalEntry._id, updateJournalEntry]
+  );
+
+  const debouncedUpdateJournalEntry = useMemo(() => {
+    return debounce(updateJournalEntryCallback, 1000);
+  }, [updateJournalEntryCallback]);
+
+  return (
+    <Textarea
+      className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+      rows={1}
+      autoSize
+      placeholder="write something..."
+      value={entry}
+      onChange={(e) => {
+        setEntry(e.target.value);
+        debouncedUpdateJournalEntry(e.target.value);
+      }}
+    />
+  );
+}
+
 function Moment({
   moment,
 }: {
@@ -87,11 +127,9 @@ function Moment({
         </Button>
       </div>
 
-      <Textarea
-        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
-        rows={1}
-        autoSize
-      />
+      {moment.journalEntries.map((entry) => (
+        <JournalEntry journalEntry={entry} key={entry._id} />
+      ))}
       <Separator />
     </div>
   );

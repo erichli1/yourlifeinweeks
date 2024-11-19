@@ -14,6 +14,10 @@ export default defineSchema(
       week: v.number(),
       name: v.string(),
     }),
+    journalEntries: defineTable({
+      momentId: v.id("moments"),
+      entry: v.string(),
+    }),
   },
   { schemaValidation: true }
 );

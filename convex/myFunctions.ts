@@ -42,7 +42,7 @@ export const getMomentsForYearWeek = query({
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
 
-    return await ctx.db
+    const rawMoments = await ctx.db
       .query("moments")
       .filter((q) =>
         q.and(
@@ -51,6 +51,19 @@ export const getMomentsForYearWeek = query({
         )
       )
       .collect();
+
+    const moments = await Promise.all(
+      rawMoments.map(async (rawMoment) => {
+        const journalEntries = await ctx.db
+          .query("journalEntries")
+          .filter((q) => q.eq(q.field("momentId"), rawMoment._id))
+          .collect();
+
+        return { ...rawMoment, journalEntries };
+      })
+    );
+
+    return moments;
   },
 });
 
@@ -64,11 +77,17 @@ export const createMomentForYearWeek = mutation({
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
 
-    await ctx.db.insert("moments", {
+    const momentId = await ctx.db.insert("moments", {
       userId: user._id,
       year: args.year,
       week: args.week,
       name: args.name,
+    });
+
+    // Create first empty journal entry
+    await ctx.db.insert("journalEntries", {
+      momentId,
+      entry: "",
     });
   },
 });
@@ -78,6 +97,15 @@ export const deleteMoment = mutation({
     momentId: v.id("moments"),
   },
   handler: async (ctx, args) => {
+    const journalEntries = await ctx.db
+      .query("journalEntries")
+      .filter((q) => q.eq(q.field("momentId"), args.momentId))
+      .collect();
+
+    await Promise.all(
+      journalEntries.map((journalEntry) => ctx.db.delete(journalEntry._id))
+    );
+
     await ctx.db.delete(args.momentId);
   },
 });
@@ -90,6 +118,18 @@ export const renameMoment = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.momentId, {
       name: args.name,
+    });
+  },
+});
+
+export const updateJournalEntry = mutation({
+  args: {
+    journalEntryId: v.id("journalEntries"),
+    entry: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.journalEntryId, {
+      entry: args.entry,
     });
   },
 });

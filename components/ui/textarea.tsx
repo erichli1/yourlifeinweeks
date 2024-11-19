@@ -3,28 +3,35 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const useAutoResizeTextarea = (
-  ref: React.ForwardedRef<HTMLTextAreaElement>
+  ref: React.ForwardedRef<HTMLTextAreaElement>,
+  value?: React.TextareaHTMLAttributes<HTMLTextAreaElement>["value"]
 ) => {
   const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useImperativeHandle(ref, () => textAreaRef.current!);
 
+  const updateTextareaHeight = React.useCallback(() => {
+    const ref = textAreaRef?.current;
+    if (ref) {
+      ref.style.height = "auto";
+      ref.style.height = ref.scrollHeight + "px";
+    }
+  }, []);
+
+  // Run on value changes
+  React.useEffect(() => {
+    console.log("value", value);
+    updateTextareaHeight();
+  }, [value, updateTextareaHeight]);
+
   React.useEffect(() => {
     const ref = textAreaRef?.current;
-
-    const updateTextareaHeight = () => {
-      if (ref) {
-        ref.style.height = "auto";
-        ref.style.height = ref.scrollHeight + "px";
-      }
-    };
-
-    updateTextareaHeight();
-
     ref?.addEventListener("input", updateTextareaHeight);
 
-    return () => ref?.removeEventListener("input", updateTextareaHeight);
-  }, []);
+    return () => {
+      ref?.removeEventListener("input", updateTextareaHeight);
+    };
+  }, [updateTextareaHeight]);
 
   return { textAreaRef };
 };
@@ -35,8 +42,8 @@ export interface TextareaProps
 }
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, autoSize, ...props }, ref) => {
-    const { textAreaRef } = useAutoResizeTextarea(ref);
+  ({ className, autoSize, value, ...props }, ref) => {
+    const { textAreaRef } = useAutoResizeTextarea(ref, value);
 
     return (
       <textarea
@@ -45,6 +52,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           className
         )}
         ref={autoSize ? textAreaRef : ref}
+        value={value}
         {...props}
       />
     );
