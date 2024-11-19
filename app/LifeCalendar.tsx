@@ -89,6 +89,7 @@ function Moment({
 
       <Textarea
         className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+        rows={1}
         autoSize
       />
       <Separator />
