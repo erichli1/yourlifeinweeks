@@ -2,9 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
-import { MinimizeIcon } from "lucide-react";
+import { MinimizeIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React, { useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   didYearWeekPassRelativeToToday,
   getDatesFromWeekNumber,
@@ -21,13 +27,61 @@ import { WrapInTooltip } from "./helpers/components";
 import { User } from "./helpers/utils";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { debounce } from "lodash";
 
 function Moment({
   moment,
 }: {
   moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
 }) {
-  return <div className="text-xl font-bold">{moment.name}</div>;
+  const [name, setName] = useState(moment.name);
+  const deleteMoment = useMutation(api.myFunctions.deleteMoment);
+  const renameMoment = useMutation(api.myFunctions.renameMoment);
+
+  useEffect(() => {
+    setName(moment.name);
+  }, [moment.name]);
+
+  const sendRequest = useCallback(
+    (value: string) => {
+      renameMoment({ momentId: moment._id, name: value }).catch(console.error);
+    },
+    [moment._id, renameMoment]
+  );
+
+  const debouncedSendRequest = useMemo(() => {
+    return debounce(sendRequest, 500);
+  }, [sendRequest]);
+
+  return (
+    <>
+      <div className="flex flex-row gap-2 justify-between items-center">
+        <Input
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            debouncedSendRequest(e.target.value);
+          }}
+          className={cn(
+            "w-full rounded-none font-bold border-0 shadow-none focus-visible:ring-0 px-0 py-0.5"
+          )}
+          placeholder="something big"
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            deleteMoment({ momentId: moment._id }).catch(console.error);
+          }}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </Button>
+      </div>
+      <Separator />
+    </>
+  );
 }
 
 function AuthenticatedWeekPopoverContent({ yearWeek }: { yearWeek: YearWeek }) {
@@ -37,16 +91,18 @@ function AuthenticatedWeekPopoverContent({ yearWeek }: { yearWeek: YearWeek }) {
     week: yearWeek.week,
   });
 
-  if (moments === undefined) return <p>Loading...</p>;
+  if (moments === undefined) return <></>;
 
   return (
     <>
+      <Separator />
       {moments.map((m) => (
         <Moment moment={m} key={m._id} />
       ))}
       <div>
         <Button
           variant="outline"
+          size="sm"
           onClick={() => {
             createMoment({
               name: "something big",

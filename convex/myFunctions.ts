@@ -72,3 +72,24 @@ export const createMomentForYearWeek = mutation({
     });
   },
 });
+
+export const deleteMoment = mutation({
+  args: {
+    momentId: v.id("moments"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.momentId);
+  },
+});
+
+export const renameMoment = mutation({
+  args: {
+    momentId: v.id("moments"),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.momentId, {
+      name: args.name,
+    });
+  },
+});
