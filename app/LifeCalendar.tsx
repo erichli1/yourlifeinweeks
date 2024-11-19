@@ -18,11 +18,6 @@ import {
   YearWeek,
 } from "./helpers/date-utils";
 import { useZoom, useDrag, DEFAULT_ZOOM } from "./helpers/interactions";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { WrapInTooltip } from "./helpers/components";
 import { User } from "./helpers/utils";
 import { api } from "@/convex/_generated/api";
@@ -30,6 +25,12 @@ import { useMutation, useQuery } from "convex/react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 function Moment({
   moment,
@@ -84,7 +85,7 @@ function Moment({
   );
 }
 
-function AuthenticatedWeekPopoverContent({ yearWeek }: { yearWeek: YearWeek }) {
+function AuthenticatedWeekContent({ yearWeek }: { yearWeek: YearWeek }) {
   const createMoment = useMutation(api.myFunctions.createMomentForYearWeek);
   const moments = useQuery(api.myFunctions.getMomentsForYearWeek, {
     year: yearWeek.year,
@@ -118,7 +119,7 @@ function AuthenticatedWeekPopoverContent({ yearWeek }: { yearWeek: YearWeek }) {
   );
 }
 
-function UnauthenticatedWeekPopoverContent() {
+function UnauthenticatedWeekContent() {
   return (
     <div>
       <SignInButton
@@ -132,7 +133,7 @@ function UnauthenticatedWeekPopoverContent() {
   );
 }
 
-function WeekPopoverContainer({
+function WeekContentContainer({
   user,
   yearWeek,
 }: {
@@ -156,9 +157,9 @@ function WeekPopoverContainer({
       </div>
 
       {user.signedIn ? (
-        <AuthenticatedWeekPopoverContent yearWeek={yearWeek} />
+        <AuthenticatedWeekContent yearWeek={yearWeek} />
       ) : (
-        <UnauthenticatedWeekPopoverContent />
+        <UnauthenticatedWeekContent />
       )}
     </div>
   );
@@ -176,25 +177,26 @@ function WeekBox({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <SheetTrigger>
         <div
           className={cn(
-            "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg",
+            "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg text-4xl",
             "transition-colors transition-transform",
             isFilled ? "bg-filled" : "bg-empty",
             isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
             isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
           )}
         />
-      </PopoverTrigger>
-      <PopoverContent
-        side="right"
-        className="w-64 md:w-96 shadow-lg bg-background"
-      >
-        <WeekPopoverContainer user={user} yearWeek={yearWeek} />
-      </PopoverContent>
-    </Popover>
+      </SheetTrigger>
+      <SheetContent side="right">
+        {/* Radix requires title to be set */}
+        <SheetTitle />
+        <div className="pt-4">
+          <WeekContentContainer user={user} yearWeek={yearWeek} />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
