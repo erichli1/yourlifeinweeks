@@ -133,3 +133,24 @@ export const updateJournalEntry = mutation({
     });
   },
 });
+
+export const createJournalEntry = mutation({
+  args: {
+    momentId: v.id("moments"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("journalEntries", {
+      momentId: args.momentId,
+      entry: "",
+    });
+  },
+});
+
+export const deleteJournalEntry = mutation({
+  args: {
+    journalEntryId: v.id("journalEntries"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.journalEntryId);
+  },
+});

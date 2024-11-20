@@ -2,7 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
-import { MinimizeIcon, TrashIcon } from "lucide-react";
+import {
+  GripVerticalIcon,
+  MinimizeIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, {
   useCallback,
@@ -37,14 +42,20 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Id } from "@/convex/_generated/dataModel";
 
 function JournalEntry({
+  momentId,
   journalEntry,
 }: {
+  momentId: Id<"moments">;
   journalEntry: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number]["journalEntries"][number];
 }) {
   const [entry, setEntry] = useState(journalEntry.entry);
   const updateJournalEntry = useMutation(api.myFunctions.updateJournalEntry);
+  const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
+  const deleteJournalEntry = useMutation(api.myFunctions.deleteJournalEntry);
+
   useEffect(() => {
     setEntry(journalEntry.entry);
   }, [journalEntry.entry]);
@@ -63,18 +74,58 @@ function JournalEntry({
     return debounce(updateJournalEntryCallback, 1000);
   }, [updateJournalEntryCallback]);
 
+  const [isHovering, setIsHovering] = useState(false);
+
   return (
-    <Textarea
-      className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
-      rows={1}
-      autoSize
-      placeholder="write something..."
-      value={entry}
-      onChange={(e) => {
-        setEntry(e.target.value);
-        debouncedUpdateJournalEntry(e.target.value);
-      }}
-    />
+    <div
+      className="contents"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      {isHovering ? (
+        <div className="flex items-start justify-end pr-2">
+          <WrapInTooltip text="Add entry" delayDuration={0}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                createJournalEntry({ momentId }).catch(console.error);
+              }}
+              className="w-auto p-0"
+            >
+              <PlusIcon className="w-4 h-4" />
+            </Button>
+          </WrapInTooltip>
+
+          <WrapInTooltip text="Delete entry" delayDuration={0}>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                deleteJournalEntry({ journalEntryId: journalEntry._id }).catch(
+                  console.error
+                );
+              }}
+              className="w-auto p-0"
+            >
+              <GripVerticalIcon className="w-4 h-4" />
+            </Button>
+          </WrapInTooltip>
+        </div>
+      ) : (
+        <div />
+      )}
+
+      <Textarea
+        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+        rows={1}
+        autoSize
+        placeholder="write something..."
+        value={entry}
+        onChange={(e) => {
+          setEntry(e.target.value);
+          debouncedUpdateJournalEntry(e.target.value);
+        }}
+      />
+    </div>
   );
 }
 
@@ -102,9 +153,33 @@ function Moment({
     return debounce(sendRequest, 500);
   }, [sendRequest]);
 
+  const [isHoveringOnInput, setIsHoveringOnInput] = useState(false);
+
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex flex-row gap-2 justify-between items-center">
+    <>
+      <div
+        className="contents"
+        onMouseEnter={() => setIsHoveringOnInput(true)}
+        onMouseLeave={() => setIsHoveringOnInput(false)}
+      >
+        {isHoveringOnInput ? (
+          <div className="flex justify-end">
+            <WrapInTooltip text="Delete moment" delayDuration={0}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  deleteMoment({ momentId: moment._id }).catch(console.error);
+                }}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </Button>
+            </WrapInTooltip>
+          </div>
+        ) : (
+          <div />
+        )}
+
         <Input
           value={name}
           onChange={(e) => {
@@ -116,22 +191,19 @@ function Moment({
           )}
           placeholder="something big"
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => {
-            deleteMoment({ momentId: moment._id }).catch(console.error);
-          }}
-        >
-          <TrashIcon className="w-4 h-4" />
-        </Button>
       </div>
 
       {moment.journalEntries.map((entry) => (
-        <JournalEntry journalEntry={entry} key={entry._id} />
+        <JournalEntry
+          journalEntry={entry}
+          key={entry._id}
+          momentId={moment._id}
+        />
       ))}
-      <Separator />
-    </div>
+
+      <div />
+      <Separator className="my-2" />
+    </>
   );
 }
 
@@ -146,10 +218,14 @@ function AuthenticatedWeekContent({ yearWeek }: { yearWeek: YearWeek }) {
 
   return (
     <>
-      <Separator />
+      <div />
+      <Separator className="my-2" />
+
       {moments.map((m) => (
         <Moment moment={m} key={m._id} />
       ))}
+
+      <div />
       <div>
         <Button
           variant="outline"
@@ -196,7 +272,8 @@ function WeekContentContainer({
   });
 
   return (
-    <div className="flex flex-col gap-2 text-sm">
+    <div className="grid grid-cols-[minmax(3rem,auto)_1fr] pt-4 pr-4">
+      <div />
       <div className="flex flex-row gap-1 justify-between">
         <div>
           Year {yearWeek.year}, Week {yearWeek.week}
@@ -279,12 +356,10 @@ function WeekBox({
           </PopoverContent>
         </Popover>
       </SheetTrigger>
-      <SheetContent side="right">
+      <SheetContent side="right" className="pl-0 sm:max-w-full">
         {/* Radix requires title to be set */}
         <SheetTitle />
-        <div className="pt-4">
-          <WeekContentContainer user={user} yearWeek={yearWeek} />
-        </div>
+        <WeekContentContainer user={user} yearWeek={yearWeek} />
       </SheetContent>
     </Sheet>
   );
