@@ -95,12 +95,21 @@ export function getDatesFromWeekNumber({
   return { start: startOfWeek, end: endOfWeek };
 }
 
-export function renderDate(date: Date, format: "MM/DD/YY") {
+export function renderDate(date: Date, format: "MM/DD/YY" | "MM/DD/YY HH:MM") {
   if (format === "MM/DD/YY")
     return date.toLocaleDateString("en-US", {
       month: "2-digit",
       day: "2-digit",
       year: "2-digit",
+    });
+
+  if (format === "MM/DD/YY HH:MM")
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
   return date.toLocaleDateString();
