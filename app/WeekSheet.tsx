@@ -4,13 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
 import { ImageIcon, NotebookPenIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getDatesFromWeekNumber,
   renderDate,
@@ -138,25 +132,28 @@ function ImagesBlockComponent({
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const saveStorageId = useMutation(api.files.saveStorageId);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    acceptedFiles.map((file) => {
-      (async () => {
-        const url = await generateUploadUrl();
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      acceptedFiles.map((file) => {
+        (async () => {
+          const url = await generateUploadUrl();
 
-        const result = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": file.type },
-          body: file,
-        });
+          const result = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": file.type },
+            body: file,
+          });
 
-        const { storageId } = await result.json();
-        saveStorageId({
-          storageId,
-          imagesBlockId: imagesBlock.imagesBlockId,
-        }).catch(console.error);
-      })();
-    });
-  }, []);
+          const { storageId } = await result.json();
+          saveStorageId({
+            storageId,
+            imagesBlockId: imagesBlock.imagesBlockId,
+          }).catch(console.error);
+        })();
+      });
+    },
+    [generateUploadUrl, saveStorageId, imagesBlock.imagesBlockId]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
