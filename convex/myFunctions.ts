@@ -1,5 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+import { MomentBlockType } from "./utils";
 
 export const getUser = query({
   args: {},
@@ -38,7 +40,15 @@ export const getMomentForYearWeek = query({
     year: v.number(),
     week: v.number(),
   },
-  handler: async (ctx, args) => {
+  handler: async (
+    ctx,
+    args
+  ): Promise<{
+    _id: Id<"moments">;
+    name: string;
+    displayName: string;
+    momentBlocks: MomentBlockType[];
+  } | null> => {
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
 
@@ -54,12 +64,60 @@ export const getMomentForYearWeek = query({
 
     if (!rawMoment) return null;
 
-    const journalEntries = await ctx.db
-      .query("journalEntries")
+    const rawMomentBlocks = await ctx.db
+      .query("momentBlocks")
       .filter((q) => q.eq(q.field("momentId"), rawMoment._id))
       .collect();
 
-    return { ...rawMoment, journalEntries };
+    const momentBlocks: MomentBlockType[] = await Promise.all(
+      rawMomentBlocks.map(async (block) => {
+        switch (block.type) {
+          case "journal":
+            const journalBlock = await ctx.db
+              .query("journalBlocks")
+              .withIndex("by_moment_block_id", (q) =>
+                q.eq("momentBlockId", block._id)
+              )
+              .unique();
+            if (!journalBlock) throw new Error("JournalBlockNotFound");
+
+            return {
+              _creationTime: block._creationTime,
+              _id: block._id,
+              type: "journal",
+              journalBlockId: journalBlock._id,
+              entry: journalBlock.entry,
+            };
+
+          case "images":
+            const imagesBlock = await ctx.db
+              .query("imagesBlocks")
+              .filter((q) => q.eq(q.field("momentBlockId"), block._id))
+              .unique();
+            if (!imagesBlock) throw new Error("ImagesBlockNotFound");
+
+            return {
+              _creationTime: block._creationTime,
+              _id: block._id,
+              type: "images",
+              imagesBlockId: imagesBlock._id,
+            };
+
+          default:
+            const _exhaustiveCheck: never = block.type;
+            throw new Error(
+              `Found unknown moment block type ${_exhaustiveCheck} when retrieving moment blocks`
+            );
+        }
+      })
+    );
+
+    return {
+      _id: rawMoment._id,
+      name: rawMoment.name,
+      displayName: rawMoment.displayName,
+      momentBlocks,
+    };
   },
 });
 
@@ -88,13 +146,15 @@ export const deleteMoment = mutation({
     momentId: v.id("moments"),
   },
   handler: async (ctx, args) => {
-    const journalEntries = await ctx.db
-      .query("journalEntries")
+    const momentBlocks = await ctx.db
+      .query("momentBlocks")
       .filter((q) => q.eq(q.field("momentId"), args.momentId))
       .collect();
 
     await Promise.all(
-      journalEntries.map((journalEntry) => ctx.db.delete(journalEntry._id))
+      momentBlocks.map((block) =>
+        deleteMomentBlock(ctx, { momentBlockId: block._id })
+      )
     );
 
     await ctx.db.delete(args.momentId);
@@ -113,13 +173,13 @@ export const renameMoment = mutation({
   },
 });
 
-export const updateJournalEntry = mutation({
+export const updateJournalBlock = mutation({
   args: {
-    journalEntryId: v.id("journalEntries"),
+    journalBlockId: v.id("journalBlocks"),
     entry: v.string(),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.journalEntryId, {
+    await ctx.db.patch(args.journalBlockId, {
       entry: args.entry,
     });
   },
@@ -130,19 +190,54 @@ export const createJournalEntry = mutation({
     momentId: v.id("moments"),
   },
   handler: async (ctx, args) => {
-    await ctx.db.insert("journalEntries", {
+    const momentBlock = await ctx.db.insert("momentBlocks", {
       momentId: args.momentId,
+      type: "journal",
+    });
+
+    await ctx.db.insert("journalBlocks", {
+      momentBlockId: momentBlock,
       entry: "",
     });
   },
 });
 
-export const deleteJournalEntry = mutation({
+export const deleteMomentBlock = mutation({
   args: {
-    journalEntryId: v.id("journalEntries"),
+    momentBlockId: v.id("momentBlocks"),
   },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.journalEntryId);
+    const momentBlock = await ctx.db.get(args.momentBlockId);
+    if (!momentBlock) throw new Error("MomentBlockNotFound");
+
+    switch (momentBlock.type) {
+      case "journal":
+        const journalBlock = await ctx.db
+          .query("journalBlocks")
+          .withIndex("by_moment_block_id", (q) =>
+            q.eq("momentBlockId", args.momentBlockId)
+          )
+          .unique();
+        if (!journalBlock) throw new Error("JournalBlockNotFound");
+
+        await ctx.db.delete(journalBlock._id);
+        break;
+
+      case "images":
+        const imagesBlock = await ctx.db
+          .query("imagesBlocks")
+          .filter((q) => q.eq(q.field("momentBlockId"), args.momentBlockId))
+          .unique();
+        break;
+
+      default:
+        const _exhaustiveCheck: never = momentBlock.type;
+        throw new Error(
+          `Found unknown moment block type ${_exhaustiveCheck} when deleting moment block`
+        );
+    }
+
+    await ctx.db.delete(args.momentBlockId);
   },
 });
 

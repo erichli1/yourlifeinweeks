@@ -19,10 +19,9 @@ import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { CommonMomentBlockType, JournalBlockType } from "@/convex/utils";
 
-type JournalEntryType = NonNullable<
-  typeof api.myFunctions.getMomentForYearWeek._returnType
->["journalEntries"][number];
+type JournalEntryType = CommonMomentBlockType & JournalBlockType;
 
 type MomentType = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
@@ -30,8 +29,8 @@ type MomentType = NonNullable<
 
 function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
   const [entry, setEntry] = useState(journalEntry.entry);
-  const updateJournalEntry = useMutation(api.myFunctions.updateJournalEntry);
-  const deleteJournalEntry = useMutation(api.myFunctions.deleteJournalEntry);
+  const updateJournalBlock = useMutation(api.myFunctions.updateJournalBlock);
+  const deleteMomentBlock = useMutation(api.myFunctions.deleteMomentBlock);
 
   useEffect(() => {
     setEntry(journalEntry.entry);
@@ -39,12 +38,12 @@ function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
 
   const updateJournalEntryCallback = useCallback(
     (value: string) => {
-      updateJournalEntry({
-        journalEntryId: journalEntry._id,
+      updateJournalBlock({
+        journalBlockId: journalEntry.journalBlockId,
         entry: value,
       }).catch(console.error);
     },
-    [journalEntry._id, updateJournalEntry]
+    [journalEntry._id, updateJournalBlock]
   );
 
   const debouncedUpdateJournalEntry = useMemo(() => {
@@ -77,7 +76,7 @@ function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
             <Button
               variant="ghost"
               onClick={() => {
-                deleteJournalEntry({ journalEntryId: journalEntry._id }).catch(
+                deleteMomentBlock({ momentBlockId: journalEntry._id }).catch(
                   console.error
                 );
               }}
@@ -150,9 +149,11 @@ function Moment({ moment }: { moment: MomentType }) {
         />
       </div>
 
-      {moment.journalEntries.map((entry) => (
-        <JournalEntry journalEntry={entry} key={entry._id} />
-      ))}
+      {moment.momentBlocks.map((block) => {
+        if (block.type === "journal")
+          return <JournalEntry journalEntry={block} key={block._id} />;
+        if (block.type === "images") return <p>images</p>;
+      })}
     </>
   );
 }

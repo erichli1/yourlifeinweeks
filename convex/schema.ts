@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { ConvexTypeMomentBlockType } from "./utils";
 
 export default defineSchema(
   {
@@ -15,10 +16,17 @@ export default defineSchema(
       name: v.string(),
       displayName: v.string(),
     }),
-    journalEntries: defineTable({
+    momentBlocks: defineTable({
       momentId: v.id("moments"),
-      entry: v.string(),
+      type: ConvexTypeMomentBlockType,
     }),
+    journalBlocks: defineTable({
+      momentBlockId: v.id("momentBlocks"),
+      entry: v.string(),
+    }).index("by_moment_block_id", ["momentBlockId"]),
+    imagesBlocks: defineTable({
+      momentBlockId: v.id("momentBlocks"),
+    }).index("by_moment_block_id", ["momentBlockId"]),
   },
   { schemaValidation: true }
 );
