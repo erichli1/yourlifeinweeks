@@ -6,21 +6,23 @@ export const ConvexTypeMomentBlockType = v.union(
   v.literal("images")
 );
 
-export type CommonMomentBlockType = {
-  _creationTime: number;
-  _id: Id<"momentBlocks">;
+export type MomentBlock = RawMomentBlock & (JournalBlock | ImagesBlock);
+
+export type RawMomentBlock = {
+  momentBlockCreationTime: number;
+  momentBlockId: Id<"momentBlocks">;
 };
 
-export type MomentBlockType = CommonMomentBlockType &
-  (JournalBlockType | ImagesBlockType);
+export type MomentBlock_Journal = RawMomentBlock & JournalBlock;
+export type MomentBlock_Images = RawMomentBlock & ImagesBlock;
 
-export type JournalBlockType = {
+type JournalBlock = {
   type: "journal";
   journalBlockId: Id<"journalBlocks">;
   entry: string;
 };
 
-export type ImagesBlockType = {
+type ImagesBlock = {
   type: "images";
   imagesBlockId: Id<"imagesBlocks">;
 };

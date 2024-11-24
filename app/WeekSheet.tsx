@@ -19,31 +19,33 @@ import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CommonMomentBlockType, JournalBlockType } from "@/convex/utils";
+import { MomentBlock_Journal } from "@/convex/utils";
 
-type JournalEntryType = CommonMomentBlockType & JournalBlockType;
-
-type MomentType = NonNullable<
+type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
 >;
 
-function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
-  const [entry, setEntry] = useState(journalEntry.entry);
+function JournalBlockComponent({
+  journalBlock,
+}: {
+  journalBlock: MomentBlock_Journal;
+}) {
+  const [entry, setEntry] = useState(journalBlock.entry);
   const updateJournalBlock = useMutation(api.myFunctions.updateJournalBlock);
   const deleteMomentBlock = useMutation(api.myFunctions.deleteMomentBlock);
 
   useEffect(() => {
-    setEntry(journalEntry.entry);
-  }, [journalEntry.entry]);
+    setEntry(journalBlock.entry);
+  }, [journalBlock.entry]);
 
   const updateJournalEntryCallback = useCallback(
     (value: string) => {
       updateJournalBlock({
-        journalBlockId: journalEntry.journalBlockId,
+        journalBlockId: journalBlock.journalBlockId,
         entry: value,
       }).catch(console.error);
     },
-    [journalEntry._id, updateJournalBlock]
+    [journalBlock.journalBlockId, updateJournalBlock]
   );
 
   const debouncedUpdateJournalEntry = useMemo(() => {
@@ -76,9 +78,9 @@ function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
             <Button
               variant="ghost"
               onClick={() => {
-                deleteMomentBlock({ momentBlockId: journalEntry._id }).catch(
-                  console.error
-                );
+                deleteMomentBlock({
+                  momentBlockId: journalBlock.momentBlockId,
+                }).catch(console.error);
               }}
               className="w-auto p-0"
             >
@@ -92,7 +94,10 @@ function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
       <div className="flex flex-col gap-1 pt-1">
         <div>
           <Badge variant="outline">
-            {renderDate(new Date(journalEntry._creationTime), "MM/DD/YY HH:MM")}
+            {renderDate(
+              new Date(journalBlock.momentBlockCreationTime),
+              "MM/DD/YY HH:MM"
+            )}
           </Badge>
         </div>
         <Textarea
@@ -111,7 +116,7 @@ function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
   );
 }
 
-function Moment({ moment }: { moment: MomentType }) {
+function MomentComponent({ moment }: { moment: Moment }) {
   const [name, setName] = useState(moment.name);
   const renameMoment = useMutation(api.myFunctions.renameMoment);
 
@@ -151,7 +156,12 @@ function Moment({ moment }: { moment: MomentType }) {
 
       {moment.momentBlocks.map((block) => {
         if (block.type === "journal")
-          return <JournalEntry journalEntry={block} key={block._id} />;
+          return (
+            <JournalBlockComponent
+              journalBlock={block}
+              key={block.momentBlockId}
+            />
+          );
         if (block.type === "images") return <p>images</p>;
       })}
     </>
@@ -165,9 +175,9 @@ function AuthenticatedWeekContentWithMoment({
 }: {
   user: User;
   yearWeek: YearWeek;
-  moment: MomentType;
+  moment: Moment;
 }) {
-  const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
+  const createJournalBlock = useMutation(api.myFunctions.createJournalBlock);
   const deleteMoment = useMutation(api.myFunctions.deleteMoment);
   const updateDisplayName = useMutation(api.myFunctions.updateDisplayName);
   const [displayName, setDisplayName] = useState(moment.displayName);
@@ -193,7 +203,7 @@ function AuthenticatedWeekContentWithMoment({
     <WeekSheetContainer user={user} yearWeek={yearWeek}>
       <div className="col-span-2 overflow-y-auto">
         <div className="grid grid-cols-[3rem_1fr]">
-          <Moment moment={moment} />
+          <MomentComponent moment={moment} />
         </div>
       </div>
 
@@ -207,7 +217,7 @@ function AuthenticatedWeekContentWithMoment({
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  createJournalEntry({ momentId: moment._id }).catch(
+                  createJournalBlock({ momentId: moment._id }).catch(
                     console.error
                   );
                 }}

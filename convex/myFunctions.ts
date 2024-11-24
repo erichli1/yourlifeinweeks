@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-import { MomentBlockType } from "./utils";
+import { MomentBlock } from "./utils";
 
 export const getUser = query({
   args: {},
@@ -47,7 +47,7 @@ export const getMomentForYearWeek = query({
     _id: Id<"moments">;
     name: string;
     displayName: string;
-    momentBlocks: MomentBlockType[];
+    momentBlocks: MomentBlock[];
   } | null> => {
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
@@ -69,7 +69,7 @@ export const getMomentForYearWeek = query({
       .filter((q) => q.eq(q.field("momentId"), rawMoment._id))
       .collect();
 
-    const momentBlocks: MomentBlockType[] = await Promise.all(
+    const momentBlocks: MomentBlock[] = await Promise.all(
       rawMomentBlocks.map(async (block) => {
         switch (block.type) {
           case "journal":
@@ -82,8 +82,8 @@ export const getMomentForYearWeek = query({
             if (!journalBlock) throw new Error("JournalBlockNotFound");
 
             return {
-              _creationTime: block._creationTime,
-              _id: block._id,
+              momentBlockCreationTime: block._creationTime,
+              momentBlockId: block._id,
               type: "journal",
               journalBlockId: journalBlock._id,
               entry: journalBlock.entry,
@@ -97,8 +97,8 @@ export const getMomentForYearWeek = query({
             if (!imagesBlock) throw new Error("ImagesBlockNotFound");
 
             return {
-              _creationTime: block._creationTime,
-              _id: block._id,
+              momentBlockCreationTime: block._creationTime,
+              momentBlockId: block._id,
               type: "images",
               imagesBlockId: imagesBlock._id,
             };
@@ -185,7 +185,7 @@ export const updateJournalBlock = mutation({
   },
 });
 
-export const createJournalEntry = mutation({
+export const createJournalBlock = mutation({
   args: {
     momentId: v.id("moments"),
   },
