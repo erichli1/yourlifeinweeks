@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { Doc } from "./_generated/dataModel";
 import { ConvexTypeMomentBlockType, MomentBlock } from "./utils";
 
 export const updateJournalBlock = mutation({
@@ -20,14 +19,30 @@ export const createJournalBlock = mutation({
     momentId: v.id("moments"),
   },
   handler: async (ctx, args) => {
-    const momentBlock = await ctx.db.insert("momentBlocks", {
+    const momentBlockId = await ctx.db.insert("momentBlocks", {
       momentId: args.momentId,
       type: "journal",
     });
 
     await ctx.db.insert("journalBlocks", {
-      momentBlockId: momentBlock,
+      momentBlockId,
       entry: "",
+    });
+  },
+});
+
+export const createImagesBlock = mutation({
+  args: {
+    momentId: v.id("moments"),
+  },
+  handler: async (ctx, args) => {
+    const momentBlockId = await ctx.db.insert("momentBlocks", {
+      momentId: args.momentId,
+      type: "images",
+    });
+
+    await ctx.db.insert("imagesBlocks", {
+      momentBlockId,
     });
   },
 });

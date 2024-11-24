@@ -19,39 +19,23 @@ import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MomentBlock_Journal } from "@/convex/utils";
+import { MomentBlock_Images, MomentBlock_Journal } from "@/convex/utils";
+import { Id } from "@/convex/_generated/dataModel";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
 >;
 
-function JournalBlockComponent({
-  journalBlock,
+function BlockContainer({
+  momentBlockId,
+  momentBlockCreationTime,
+  children,
 }: {
-  journalBlock: MomentBlock_Journal;
+  momentBlockId: Id<"momentBlocks">;
+  momentBlockCreationTime: number;
+  children: React.ReactNode;
 }) {
-  const [entry, setEntry] = useState(journalBlock.entry);
-  const updateJournalBlock = useMutation(api.blocks.updateJournalBlock);
   const deleteMomentBlock = useMutation(api.blocks.deleteMomentBlock);
-
-  useEffect(() => {
-    setEntry(journalBlock.entry);
-  }, [journalBlock.entry]);
-
-  const updateJournalEntryCallback = useCallback(
-    (value: string) => {
-      updateJournalBlock({
-        journalBlockId: journalBlock.journalBlockId,
-        entry: value,
-      }).catch(console.error);
-    },
-    [journalBlock.journalBlockId, updateJournalBlock]
-  );
-
-  const debouncedUpdateJournalEntry = useMemo(() => {
-    return debounce(updateJournalEntryCallback, 1000);
-  }, [updateJournalEntryCallback]);
-
   const [isHovering, setIsHovering] = useState(false);
 
   return (
@@ -79,7 +63,7 @@ function JournalBlockComponent({
               variant="ghost"
               onClick={() => {
                 deleteMomentBlock({
-                  momentBlockId: journalBlock.momentBlockId,
+                  momentBlockId,
                 }).catch(console.error);
               }}
               className="w-auto p-0"
@@ -94,25 +78,73 @@ function JournalBlockComponent({
       <div className="flex flex-col gap-1 pt-1">
         <div>
           <Badge variant="outline">
-            {renderDate(
-              new Date(journalBlock.momentBlockCreationTime),
-              "MM/DD/YY HH:MM"
-            )}
+            {renderDate(new Date(momentBlockCreationTime), "MM/DD/YY HH:MM")}
           </Badge>
         </div>
-        <Textarea
-          className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
-          rows={1}
-          autoSize
-          placeholder="what's on your mind?"
-          value={entry}
-          onChange={(e) => {
-            setEntry(e.target.value);
-            debouncedUpdateJournalEntry(e.target.value);
-          }}
-        />
+        {children}
       </div>
     </div>
+  );
+}
+
+function ImagesBlockComponent({
+  imagesBlock,
+}: {
+  imagesBlock: MomentBlock_Images;
+}) {
+  return (
+    <BlockContainer
+      momentBlockId={imagesBlock.momentBlockId}
+      momentBlockCreationTime={imagesBlock.momentBlockCreationTime}
+    >
+      <p className="text-sm">images!</p>
+    </BlockContainer>
+  );
+}
+
+function JournalBlockComponent({
+  journalBlock,
+}: {
+  journalBlock: MomentBlock_Journal;
+}) {
+  const [entry, setEntry] = useState(journalBlock.entry);
+  const updateJournalBlock = useMutation(api.blocks.updateJournalBlock);
+
+  useEffect(() => {
+    setEntry(journalBlock.entry);
+  }, [journalBlock.entry]);
+
+  const updateJournalEntryCallback = useCallback(
+    (value: string) => {
+      updateJournalBlock({
+        journalBlockId: journalBlock.journalBlockId,
+        entry: value,
+      }).catch(console.error);
+    },
+    [journalBlock.journalBlockId, updateJournalBlock]
+  );
+
+  const debouncedUpdateJournalEntry = useMemo(() => {
+    return debounce(updateJournalEntryCallback, 1000);
+  }, [updateJournalEntryCallback]);
+
+  return (
+    <BlockContainer
+      momentBlockId={journalBlock.momentBlockId}
+      momentBlockCreationTime={journalBlock.momentBlockCreationTime}
+    >
+      <Textarea
+        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+        rows={1}
+        autoSize
+        placeholder="what's on your mind?"
+        value={entry}
+        onChange={(e) => {
+          setEntry(e.target.value);
+          debouncedUpdateJournalEntry(e.target.value);
+        }}
+      />
+    </BlockContainer>
   );
 }
 
@@ -162,7 +194,13 @@ function MomentComponent({ moment }: { moment: Moment }) {
               key={block.momentBlockId}
             />
           );
-        if (block.type === "images") return <p>images</p>;
+        if (block.type === "images")
+          return (
+            <ImagesBlockComponent
+              imagesBlock={block}
+              key={block.momentBlockId}
+            />
+          );
       })}
     </>
   );
@@ -178,6 +216,7 @@ function AuthenticatedWeekContentWithMoment({
   moment: Moment;
 }) {
   const createJournalBlock = useMutation(api.blocks.createJournalBlock);
+  const createImagesBlock = useMutation(api.blocks.createImagesBlock);
   const deleteMoment = useMutation(api.myFunctions.deleteMoment);
   const updateDisplayName = useMutation(api.myFunctions.updateDisplayName);
   const [displayName, setDisplayName] = useState(moment.displayName);
@@ -228,7 +267,15 @@ function AuthenticatedWeekContentWithMoment({
             </WrapInTooltip>
 
             <WrapInTooltip text="Add images" delayDuration={0} asChild>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  createImagesBlock({ momentId: moment._id }).catch(
+                    console.error
+                  );
+                }}
+              >
                 <ImageIcon className="w-4 h-4 mr-1" />
                 Images
               </Button>
