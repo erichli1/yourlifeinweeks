@@ -29,9 +29,6 @@ import { WeekSheet } from "./WeekSheet";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
-import { Bubblegum_Sans } from "next/font/google";
-
-const crossedFont = Bubblegum_Sans({ subsets: ["latin"], weight: "400" });
 
 function WeekBoxPopover({
   user,
@@ -86,24 +83,15 @@ function WeekBox({
               className={cn(
                 "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg",
                 "transition-colors transition-transform",
-                // isFilled ? "bg-filled" : "bg-empty",
+                isFilled ? "bg-filled" : "bg-empty",
                 isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
                 isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
               )}
               onMouseEnter={() => debouncedSendRequest(true)}
               onMouseLeave={() => debouncedSendRequest(false)}
             >
-              {displayName ? (
-                <FitText text={displayName} className="" />
-              ) : (
-                isFilled && (
-                  // <p
-                  //   className={cn("text-8xl font-bold", crossedFont.className)}
-                  // >
-                  //   X
-                  // </p>
-                  <FitText text="X" className="" />
-                )
+              {displayName && (
+                <FitText text={displayName} className="font-bold" />
               )}
             </div>
           </PopoverTrigger>
@@ -160,7 +148,7 @@ function GridCalendar({ user }: { user: User }) {
       ))}
       <div />
       {/* Grid cells */}
-      {Array.from({ length: 60 }).map((_, year) => (
+      {Array.from({ length: 90 }).map((_, year) => (
         <React.Fragment key={`year-${year}`}>
           <div
             key={`header-year-${year}`}

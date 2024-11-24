@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import debounce from "lodash/debounce";
 
 const MIN_FONT_SIZE = 16;
 const MAX_FONT_SIZE = 100;
@@ -11,45 +12,50 @@ function useFitText(text: string) {
   const textRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const resizeText = () => {
-      if (!textRef.current || !containerRef.current) return;
+  const resizeText = useCallback(() => {
+    if (!textRef.current || !containerRef.current) return;
 
-      const containerWidth = containerRef.current.clientWidth;
-      const containerHeight = containerRef.current.clientHeight;
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
 
-      const cacheKey = `${text}-${containerWidth}x${containerHeight}`;
-      if (fontSizeCache.has(cacheKey)) {
-        setFontSize(fontSizeCache.get(cacheKey)!);
-        return;
+    const cacheKey = `${text}-${containerWidth}x${containerHeight}`;
+    if (fontSizeCache.has(cacheKey)) {
+      setFontSize(fontSizeCache.get(cacheKey)!);
+      return;
+    }
+
+    let low = MIN_FONT_SIZE;
+    let high = MAX_FONT_SIZE;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      textRef.current.style.fontSize = `${mid}px`;
+
+      if (
+        textRef.current.scrollWidth <= containerWidth &&
+        textRef.current.scrollHeight <= containerHeight
+      ) {
+        low = mid + 1;
+      } else {
+        high = mid - 1;
       }
+    }
 
-      let low = MIN_FONT_SIZE;
-      let high = MAX_FONT_SIZE;
-
-      while (low <= high) {
-        const mid = Math.floor((low + high) / 2);
-        textRef.current.style.fontSize = `${mid}px`;
-
-        if (
-          textRef.current.scrollWidth <= containerWidth &&
-          textRef.current.scrollHeight <= containerHeight
-        ) {
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      }
-
-      fontSizeCache.set(cacheKey, high);
-      setFontSize(high);
-    };
-
-    resizeText();
-    window.addEventListener("resize", resizeText);
-
-    return () => window.removeEventListener("resize", resizeText);
+    fontSizeCache.set(cacheKey, high);
+    setFontSize(high);
   }, [text]);
+
+  useEffect(() => {
+    const debouncedResize = debounce(resizeText, 500);
+
+    debouncedResize();
+    window.addEventListener("resize", debouncedResize);
+
+    return () => {
+      window.removeEventListener("resize", debouncedResize);
+      debouncedResize.cancel();
+    };
+  }, [resizeText]);
 
   return { fontSize, textRef, containerRef };
 }
