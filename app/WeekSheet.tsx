@@ -31,8 +31,8 @@ function JournalBlockComponent({
   journalBlock: MomentBlock_Journal;
 }) {
   const [entry, setEntry] = useState(journalBlock.entry);
-  const updateJournalBlock = useMutation(api.myFunctions.updateJournalBlock);
-  const deleteMomentBlock = useMutation(api.myFunctions.deleteMomentBlock);
+  const updateJournalBlock = useMutation(api.blocks.updateJournalBlock);
+  const deleteMomentBlock = useMutation(api.blocks.deleteMomentBlock);
 
   useEffect(() => {
     setEntry(journalBlock.entry);
@@ -177,7 +177,7 @@ function AuthenticatedWeekContentWithMoment({
   yearWeek: YearWeek;
   moment: Moment;
 }) {
-  const createJournalBlock = useMutation(api.myFunctions.createJournalBlock);
+  const createJournalBlock = useMutation(api.blocks.createJournalBlock);
   const deleteMoment = useMutation(api.myFunctions.deleteMoment);
   const updateDisplayName = useMutation(api.myFunctions.updateDisplayName);
   const [displayName, setDisplayName] = useState(moment.displayName);
