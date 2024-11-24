@@ -2,8 +2,12 @@
 
 P0
 
-- Image carousel
+- Modify rendering of filled blocks
 - Modify colors
+- Button to ffwd thru onboarding
+
+PRODUCT
+
 - Get more info from user (ex: hopes and dreams)
 
 ENG

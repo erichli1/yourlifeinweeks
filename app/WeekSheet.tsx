@@ -2,7 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
-import { ImageIcon, NotebookPenIcon, TrashIcon } from "lucide-react";
+import {
+  ImagePlusIcon,
+  ImagesIcon,
+  NotebookPenIcon,
+  TrashIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -191,7 +196,7 @@ function ImagesBlockComponent({
           )}
         >
           <input {...getInputProps()} accept="image/*" />
-          <ImageIcon className="w-8 h-8 text-gray-300 group-hover:text-primary transition-colors" />
+          <ImagePlusIcon className="w-8 h-8 text-gray-300 group-hover:text-primary transition-colors" />
         </div>
       </div>
     </BlockContainer>
@@ -372,7 +377,7 @@ function AuthenticatedWeekContentWithMoment({
                   );
                 }}
               >
-                <ImageIcon className="w-4 h-4 mr-1" />
+                <ImagesIcon className="w-4 h-4 mr-1" />
                 Images
               </Button>
             </WrapInTooltip>
