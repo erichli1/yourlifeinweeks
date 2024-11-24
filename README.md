@@ -5,6 +5,7 @@ P0
 - Modify rendering of filled blocks
 - Modify colors
 - Button to ffwd thru onboarding
+- Instant command bar
 
 PRODUCT
 

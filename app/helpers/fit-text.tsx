@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 const MIN_FONT_SIZE = 16;
 const MAX_FONT_SIZE = 100;
 
+const fontSizeCache = new Map<string, number>();
+
 function useFitText(text: string) {
   const [fontSize, setFontSize] = useState(MAX_FONT_SIZE);
   const textRef = useRef<HTMLDivElement>(null);
@@ -13,6 +15,15 @@ function useFitText(text: string) {
     const resizeText = () => {
       if (!textRef.current || !containerRef.current) return;
 
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+
+      const cacheKey = `${text}-${containerWidth}x${containerHeight}`;
+      if (fontSizeCache.has(cacheKey)) {
+        setFontSize(fontSizeCache.get(cacheKey)!);
+        return;
+      }
+
       let low = MIN_FONT_SIZE;
       let high = MAX_FONT_SIZE;
 
@@ -21,8 +32,8 @@ function useFitText(text: string) {
         textRef.current.style.fontSize = `${mid}px`;
 
         if (
-          textRef.current.scrollWidth <= containerRef.current.clientWidth &&
-          textRef.current.scrollHeight <= containerRef.current.clientHeight
+          textRef.current.scrollWidth <= containerWidth &&
+          textRef.current.scrollHeight <= containerHeight
         ) {
           low = mid + 1;
         } else {
@@ -30,6 +41,7 @@ function useFitText(text: string) {
         }
       }
 
+      fontSizeCache.set(cacheKey, high);
       setFontSize(high);
     };
 
