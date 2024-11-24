@@ -2,11 +2,9 @@
 
 P0
 
+- Char for rendering
 - Image carousel
-- Can toggle a journal entry to be a carousel
-- Typing backslash opens up a menu of options
-- If you delete the entry, it resets back to empty entry
-- Cmd + enter to add a new entry
+- Modify colors
 - Get more info from user (ex: hopes and dreams)
 
 ENG

@@ -168,6 +168,26 @@ function AuthenticatedWeekContentWithMoment({
 }) {
   const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
   const deleteMoment = useMutation(api.myFunctions.deleteMoment);
+  const updateDisplayName = useMutation(api.myFunctions.updateDisplayName);
+  const [displayName, setDisplayName] = useState(moment.displayName);
+
+  useEffect(() => {
+    setDisplayName(moment.displayName);
+  }, [moment.displayName]);
+
+  const sendRequest = useCallback(
+    (value: string) => {
+      updateDisplayName({ momentId: moment._id, displayName: value }).catch(
+        console.error
+      );
+    },
+    [moment._id, updateDisplayName]
+  );
+
+  const debouncedSendRequest = useMemo(() => {
+    return debounce(sendRequest, 500);
+  }, [sendRequest]);
+
   return (
     <WeekSheetContainer user={user} yearWeek={yearWeek}>
       <div className="col-span-2 overflow-y-auto">
@@ -204,17 +224,34 @@ function AuthenticatedWeekContentWithMoment({
             </WrapInTooltip>
           </div>
 
-          <WrapInTooltip text="Delete moment" delayDuration={0} asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                deleteMoment({ momentId: moment._id }).catch(console.error);
-              }}
-            >
-              <TrashIcon className="w-4 h-4" />
-            </Button>
-          </WrapInTooltip>
+          <div className="flex flex-row gap-2">
+            <WrapInTooltip text="Edit display name" delayDuration={0}>
+              <Input
+                placeholder="name"
+                className="h-8 text-xs"
+                value={displayName}
+                onChange={(e) => {
+                  setDisplayName(e.target.value);
+                  debouncedSendRequest(e.target.value);
+                }}
+              />
+            </WrapInTooltip>
+
+            <div>
+              <WrapInTooltip text="Delete moment" delayDuration={0} asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    deleteMoment({ momentId: moment._id }).catch(console.error);
+                  }}
+                  className="h-8 w-8"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </Button>
+              </WrapInTooltip>
+            </div>
+          </div>
         </div>
       </div>
     </WeekSheetContainer>
@@ -324,9 +361,11 @@ function WeekSheetContainer({
     <div className="grid grid-cols-[3rem_1fr] pt-4 pr-4 grid-rows-[auto_1fr_auto] h-full">
       <div />
       <div>
-        <div className="flex flex-row gap-1 justify-between">
-          <div>
-            Year {yearWeek.year}, Week {yearWeek.week}
+        <div className="flex flex-row gap-1 justify-between items-center">
+          <div className="flex flex-row gap-1 items-center">
+            <div>
+              Year {yearWeek.year}, Week {yearWeek.week}
+            </div>
           </div>
           <div>
             {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}

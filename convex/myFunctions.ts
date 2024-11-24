@@ -82,6 +82,7 @@ export const createMomentForYearWeek = mutation({
       year: args.year,
       week: args.week,
       name: args.name,
+      displayName: "🎉",
     });
   },
 });
@@ -146,5 +147,39 @@ export const deleteJournalEntry = mutation({
   },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.journalEntryId);
+  },
+});
+
+export const getDisplayNames = query({
+  args: {},
+  handler: async (ctx) => {
+    const convexUser = await ctx.auth.getUserIdentity();
+    if (!convexUser) return [];
+
+    const user = await getUser(ctx, {});
+    if (!user) return [];
+
+    const moments = await ctx.db
+      .query("moments")
+      .filter((q) => q.eq(q.field("userId"), user._id))
+      .collect();
+
+    return moments.map((moment) => ({
+      displayName: moment.displayName,
+      year: moment.year,
+      week: moment.week,
+    }));
+  },
+});
+
+export const updateDisplayName = mutation({
+  args: {
+    momentId: v.id("moments"),
+    displayName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.momentId, {
+      displayName: args.displayName,
+    });
   },
 });

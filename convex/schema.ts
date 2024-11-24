@@ -13,6 +13,7 @@ export default defineSchema(
       year: v.number(),
       week: v.number(),
       name: v.string(),
+      displayName: v.string(),
     }),
     journalEntries: defineTable({
       momentId: v.id("moments"),

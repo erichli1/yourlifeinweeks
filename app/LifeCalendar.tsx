@@ -26,6 +26,9 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { WeekSheet } from "./WeekSheet";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
+import { FitText } from "./helpers/fit-text";
 
 function WeekBoxPopover({
   user,
@@ -53,10 +56,12 @@ function WeekBox({
   isFilled,
   yearWeek,
   user,
+  displayName,
 }: {
   isFilled: boolean;
   yearWeek: YearWeek;
   user: User;
+  displayName?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -76,7 +81,7 @@ function WeekBox({
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg text-4xl",
+                "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg",
                 "transition-colors transition-transform",
                 isFilled ? "bg-filled" : "bg-empty",
                 isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
@@ -84,7 +89,11 @@ function WeekBox({
               )}
               onMouseEnter={() => debouncedSendRequest(true)}
               onMouseLeave={() => debouncedSendRequest(false)}
-            />
+            >
+              {displayName && (
+                <FitText text={displayName} className="text-white" />
+              )}
+            </div>
           </PopoverTrigger>
           <PopoverContent className="bg-background w-fit p-2" side="top">
             <WeekBoxPopover user={user} yearWeek={yearWeek} />
@@ -103,6 +112,21 @@ function WeekBox({
 const MemoizedWeekBox = React.memo(WeekBox);
 
 function GridCalendar({ user }: { user: User }) {
+  const displayNames = useQuery(api.myFunctions.getDisplayNames);
+
+  const displayNamesMap: Map<number, Map<number, string>> = useMemo(() => {
+    const map = new Map<number, Map<number, string>>();
+
+    if (displayNames)
+      displayNames.forEach(({ year, week, displayName }) => {
+        map.set(year, (map.get(year) || new Map()).set(week, displayName));
+      });
+
+    return map;
+  }, [displayNames]);
+
+  if (!displayNames) return <></>;
+
   return (
     <div
       className="grid gap-[10px]"
@@ -141,6 +165,7 @@ function GridCalendar({ user }: { user: User }) {
               user={user}
               yearWeek={{ year, week: week0Indexed + 1 }}
               key={`cell-${year}-${week0Indexed + 1}`}
+              displayName={displayNamesMap.get(year)?.get(week0Indexed + 1)}
             />
           ))}
           <div />
