@@ -2,7 +2,6 @@
 
 P0
 
-- Char for rendering
 - Image carousel
 - Modify colors
 - Get more info from user (ex: hopes and dreams)

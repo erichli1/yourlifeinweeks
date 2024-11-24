@@ -33,7 +33,7 @@ export const createUser = mutation({
   },
 });
 
-export const getMomentsForYearWeek = query({
+export const getMomentForYearWeek = query({
   args: {
     year: v.number(),
     week: v.number(),
@@ -42,7 +42,7 @@ export const getMomentsForYearWeek = query({
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
 
-    const rawMoments = await ctx.db
+    const rawMoment = await ctx.db
       .query("moments")
       .filter((q) =>
         q.and(
@@ -50,20 +50,16 @@ export const getMomentsForYearWeek = query({
           q.eq(q.field("week"), args.week)
         )
       )
+      .unique();
+
+    if (!rawMoment) return null;
+
+    const journalEntries = await ctx.db
+      .query("journalEntries")
+      .filter((q) => q.eq(q.field("momentId"), rawMoment._id))
       .collect();
 
-    const moments = await Promise.all(
-      rawMoments.map(async (rawMoment) => {
-        const journalEntries = await ctx.db
-          .query("journalEntries")
-          .filter((q) => q.eq(q.field("momentId"), rawMoment._id))
-          .collect();
-
-        return { ...rawMoment, journalEntries };
-      })
-    );
-
-    return moments;
+    return { ...rawMoment, journalEntries };
   },
 });
 

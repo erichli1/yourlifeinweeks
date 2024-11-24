@@ -20,11 +20,15 @@ import { debounce } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
-function JournalEntry({
-  journalEntry,
-}: {
-  journalEntry: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number]["journalEntries"][number];
-}) {
+type JournalEntryType = NonNullable<
+  typeof api.myFunctions.getMomentForYearWeek._returnType
+>["journalEntries"][number];
+
+type MomentType = NonNullable<
+  typeof api.myFunctions.getMomentForYearWeek._returnType
+>;
+
+function JournalEntry({ journalEntry }: { journalEntry: JournalEntryType }) {
   const [entry, setEntry] = useState(journalEntry.entry);
   const updateJournalEntry = useMutation(api.myFunctions.updateJournalEntry);
   const deleteJournalEntry = useMutation(api.myFunctions.deleteJournalEntry);
@@ -108,11 +112,7 @@ function JournalEntry({
   );
 }
 
-function Moment({
-  moment,
-}: {
-  moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
-}) {
+function Moment({ moment }: { moment: MomentType }) {
   const [name, setName] = useState(moment.name);
   const renameMoment = useMutation(api.myFunctions.renameMoment);
 
@@ -164,7 +164,7 @@ function AuthenticatedWeekContentWithMoment({
 }: {
   user: User;
   yearWeek: YearWeek;
-  moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
+  moment: MomentType;
 }) {
   const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
   const deleteMoment = useMutation(api.myFunctions.deleteMoment);
@@ -216,10 +216,10 @@ function AuthenticatedWeekContentWithMoment({
               </Button>
             </WrapInTooltip>
 
-            <WrapInTooltip text="Add image" delayDuration={0} asChild>
-              <Button variant="outline" size="sm" disabled>
+            <WrapInTooltip text="Add images" delayDuration={0} asChild>
+              <Button variant="outline" size="sm">
                 <ImageIcon className="w-4 h-4 mr-1" />
-                Image
+                Images
               </Button>
             </WrapInTooltip>
           </div>
@@ -295,19 +295,17 @@ function AuthenticatedWeekContent({
   user: User;
   yearWeek: YearWeek;
 }) {
-  const moments = useQuery(api.myFunctions.getMomentsForYearWeek, {
+  const moment = useQuery(api.myFunctions.getMomentForYearWeek, {
     year: yearWeek.year,
     week: yearWeek.week,
   });
 
-  if (moments === undefined) return <></>;
+  if (moment === undefined) return <></>;
 
-  if (moments.length === 0)
+  if (moment === null)
     return (
       <AuthenticatedWeekContentWithNoMoment user={user} yearWeek={yearWeek} />
     );
-
-  const moment = moments[0];
 
   return (
     <AuthenticatedWeekContentWithMoment
