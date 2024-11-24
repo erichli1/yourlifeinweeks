@@ -88,7 +88,13 @@ function BlockContainer({
   );
 }
 
-function Image({ imageId, url }: { imageId: Id<"images">; url: string }) {
+function UploadedImage({
+  imageId,
+  url,
+}: {
+  imageId: Id<"images">;
+  url: string;
+}) {
   const [isHovering, setIsHovering] = useState(false);
   const deleteImage = useMutation(api.blocks.deleteImage);
 
@@ -104,6 +110,7 @@ function Image({ imageId, url }: { imageId: Id<"images">; url: string }) {
           "w-full h-full object-cover rounded-md",
           isHovering && "opacity-60"
         )}
+        alt="uploaded image"
       />
 
       {isHovering && (
@@ -145,11 +152,11 @@ function ImagesBlockComponent({
           });
 
           const { storageId } = await result.json();
-          saveStorageId({
+          await saveStorageId({
             storageId,
             imagesBlockId: imagesBlock.imagesBlockId,
-          }).catch(console.error);
-        })();
+          });
+        })().catch(console.error);
       });
     },
     [generateUploadUrl, saveStorageId, imagesBlock.imagesBlockId]
@@ -164,7 +171,11 @@ function ImagesBlockComponent({
     >
       <div className="w-full flex flex-row gap-2 flex-wrap">
         {imagesBlock.images.map((image) => (
-          <Image key={image.imageId} imageId={image.imageId} url={image.url} />
+          <UploadedImage
+            key={image.imageId}
+            imageId={image.imageId}
+            url={image.url}
+          />
         ))}
 
         <div
