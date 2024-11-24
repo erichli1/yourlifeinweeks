@@ -166,3 +166,16 @@ export const fillRawMomentBlock = query({
     }
   },
 });
+
+export const deleteImage = mutation({
+  args: {
+    imageId: v.id("images"),
+  },
+  handler: async (ctx, args) => {
+    const image = await ctx.db.get(args.imageId);
+    if (!image) throw new Error("ImageNotFound");
+
+    await ctx.storage.delete(image.storageId);
+    await ctx.db.delete(args.imageId);
+  },
+});

@@ -94,6 +94,42 @@ function BlockContainer({
   );
 }
 
+function Image({ imageId, url }: { imageId: Id<"images">; url: string }) {
+  const [isHovering, setIsHovering] = useState(false);
+  const deleteImage = useMutation(api.blocks.deleteImage);
+
+  return (
+    <div
+      className="w-32 h-32 transition-colors relative"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <img
+        src={url}
+        className={cn(
+          "w-full h-full object-cover rounded-md",
+          isHovering && "opacity-60"
+        )}
+      />
+
+      {isHovering && (
+        <div className="absolute bottom-0 right-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hover:bg-transparent"
+            onClick={() => {
+              deleteImage({ imageId }).catch(console.error);
+            }}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ImagesBlockComponent({
   imagesBlock,
 }: {
@@ -129,11 +165,9 @@ function ImagesBlockComponent({
       momentBlockId={imagesBlock.momentBlockId}
       momentBlockCreationTime={imagesBlock.momentBlockCreationTime}
     >
-      <div className="flex flex-row gap-2">
+      <div className="w-full flex flex-row gap-2 flex-wrap">
         {imagesBlock.images.map((image) => (
-          <div key={image.imageId} className="w-32 h-32">
-            <img src={image.url} alt="uploaded image" />
-          </div>
+          <Image key={image.imageId} imageId={image.imageId} url={image.url} />
         ))}
 
         <div
@@ -142,15 +176,14 @@ function ImagesBlockComponent({
             "w-32 h-32",
             "border-2 border-dashed rounded-md flex flex-col items-center justify-center",
             "cursor-pointer transition-colors",
+            "group",
             isDragActive
               ? "border-primary bg-primary/10"
               : "border-gray-300 hover:border-primary"
           )}
         >
           <input {...getInputProps()} accept="image/*" />
-          <p className="text-sm text-gray-500 text-center">
-            Drag & drop or click to select
-          </p>
+          <ImageIcon className="w-8 h-8 text-gray-300 group-hover:text-primary transition-colors" />
         </div>
       </div>
     </BlockContainer>
