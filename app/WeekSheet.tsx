@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
-import { TrashIcon } from "lucide-react";
+import { ImageIcon, NotebookPenIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -96,7 +96,7 @@ function JournalEntry({
           className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
           rows={1}
           autoSize
-          placeholder="write something..."
+          placeholder="what's on your mind?"
           value={entry}
           onChange={(e) => {
             setEntry(e.target.value);
@@ -167,11 +167,11 @@ function AuthenticatedWeekContentWithMoment({
   moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
 }) {
   const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
-
+  const deleteMoment = useMutation(api.myFunctions.deleteMoment);
   return (
     <WeekSheetContainer user={user} yearWeek={yearWeek}>
       <div className="col-span-2 overflow-y-auto">
-        <div className="grid grid-cols-[4rem_1fr]">
+        <div className="grid grid-cols-[3rem_1fr]">
           <Moment moment={moment} />
         </div>
       </div>
@@ -181,25 +181,40 @@ function AuthenticatedWeekContentWithMoment({
         <Separator className="my-2" />
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                createJournalEntry({ momentId: moment._id }).catch(
-                  console.error
-                );
-              }}
-            >
-              Journal
-            </Button>
-            <Button variant="outline" size="sm" disabled>
-              Image
-            </Button>
+            <WrapInTooltip text="Add journal entry" delayDuration={0} asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  createJournalEntry({ momentId: moment._id }).catch(
+                    console.error
+                  );
+                }}
+              >
+                <NotebookPenIcon className="w-4 h-4 mr-1" />
+                Journal
+              </Button>
+            </WrapInTooltip>
+
+            <WrapInTooltip text="Add image" delayDuration={0} asChild>
+              <Button variant="outline" size="sm" disabled>
+                <ImageIcon className="w-4 h-4 mr-1" />
+                Image
+              </Button>
+            </WrapInTooltip>
           </div>
 
-          <Button variant="outline" size="sm" disabled>
-            Menu
-          </Button>
+          <WrapInTooltip text="Delete moment" delayDuration={0} asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                deleteMoment({ momentId: moment._id }).catch(console.error);
+              }}
+            >
+              <TrashIcon className="w-4 h-4" />
+            </Button>
+          </WrapInTooltip>
         </div>
       </div>
     </WeekSheetContainer>
@@ -306,7 +321,7 @@ function WeekSheetContainer({
   });
 
   return (
-    <div className="grid grid-cols-[4rem_1fr] pt-4 pr-4 grid-rows-[auto_1fr_auto] h-full">
+    <div className="grid grid-cols-[3rem_1fr] pt-4 pr-4 grid-rows-[auto_1fr_auto] h-full">
       <div />
       <div>
         <div className="flex flex-row gap-1 justify-between">
