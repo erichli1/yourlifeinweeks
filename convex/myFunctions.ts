@@ -77,17 +77,11 @@ export const createMomentForYearWeek = mutation({
     const user = await getUser(ctx, {});
     if (!user) throw new Error("NoCreatedAccount");
 
-    const momentId = await ctx.db.insert("moments", {
+    await ctx.db.insert("moments", {
       userId: user._id,
       year: args.year,
       week: args.week,
       name: args.name,
-    });
-
-    // Create first empty journal entry
-    await ctx.db.insert("journalEntries", {
-      momentId,
-      entry: "",
     });
   },
 });

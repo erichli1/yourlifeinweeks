@@ -20,7 +20,6 @@ const useAutoResizeTextarea = (
 
   // Run on value changes
   React.useEffect(() => {
-    console.log("value", value);
     updateTextareaHeight();
   }, [value, updateTextareaHeight]);
 

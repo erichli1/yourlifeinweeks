@@ -69,7 +69,7 @@ function JournalEntry({
             </Button>
           </WrapInTooltip> */}
 
-          <WrapInTooltip text="Delete entry" delayDuration={0}>
+          <WrapInTooltip text="Delete entry" delayDuration={0} asChild>
             <Button
               variant="ghost"
               onClick={() => {
@@ -157,45 +157,16 @@ function Moment({
   );
 }
 
-function UnauthenticatedWeekContent({
+function AuthenticatedWeekContentWithMoment({
   user,
   yearWeek,
+  moment,
 }: {
   user: User;
   yearWeek: YearWeek;
+  moment: (typeof api.myFunctions.getMomentsForYearWeek._returnType)[number];
 }) {
-  return (
-    <WeekSheetContainer user={user} yearWeek={yearWeek}>
-      <div />
-      <div>
-        <SignInButton
-          mode="modal"
-          redirectUrl={window ? window.location.href : undefined}
-        >
-          <span className="underline cursor-pointer">Sign in</span>
-        </SignInButton>{" "}
-        to add moments
-      </div>
-    </WeekSheetContainer>
-  );
-}
-
-function AuthenticatedWeekContent({
-  user,
-  yearWeek,
-}: {
-  user: User;
-  yearWeek: YearWeek;
-}) {
-  const moments = useQuery(api.myFunctions.getMomentsForYearWeek, {
-    year: yearWeek.year,
-    week: yearWeek.week,
-  });
   const createJournalEntry = useMutation(api.myFunctions.createJournalEntry);
-
-  if (moments === undefined || moments.length === 0) return <></>;
-
-  const moment = moments[0];
 
   return (
     <WeekSheetContainer user={user} yearWeek={yearWeek}>
@@ -230,6 +201,91 @@ function AuthenticatedWeekContent({
             Menu
           </Button>
         </div>
+      </div>
+    </WeekSheetContainer>
+  );
+}
+
+function AuthenticatedWeekContentWithNoMoment({
+  user,
+  yearWeek,
+}: {
+  user: User;
+  yearWeek: YearWeek;
+}) {
+  const createMoment = useMutation(api.myFunctions.createMomentForYearWeek);
+
+  return (
+    <WeekSheetContainer user={user} yearWeek={yearWeek}>
+      <div />
+      <div className="h-full flex items-center justify-center">
+        <Button
+          variant="outline"
+          onClick={() => {
+            createMoment({
+              year: yearWeek.year,
+              week: yearWeek.week,
+              name: "",
+            }).catch(console.error);
+          }}
+        >
+          add a moment
+        </Button>
+      </div>
+    </WeekSheetContainer>
+  );
+}
+
+function AuthenticatedWeekContent({
+  user,
+  yearWeek,
+}: {
+  user: User;
+  yearWeek: YearWeek;
+}) {
+  const moments = useQuery(api.myFunctions.getMomentsForYearWeek, {
+    year: yearWeek.year,
+    week: yearWeek.week,
+  });
+
+  if (moments === undefined) return <></>;
+
+  if (moments.length === 0)
+    return (
+      <AuthenticatedWeekContentWithNoMoment user={user} yearWeek={yearWeek} />
+    );
+
+  const moment = moments[0];
+
+  return (
+    <AuthenticatedWeekContentWithMoment
+      user={user}
+      yearWeek={yearWeek}
+      moment={moment}
+    />
+  );
+}
+
+function UnauthenticatedWeekContent({
+  user,
+  yearWeek,
+}: {
+  user: User;
+  yearWeek: YearWeek;
+}) {
+  return (
+    <WeekSheetContainer user={user} yearWeek={yearWeek}>
+      <div />
+      <div className="h-full flex items-center justify-center">
+        <p>
+          <SignInButton
+            mode="modal"
+            redirectUrl={window ? window.location.href : undefined}
+          >
+            <span className="underline cursor-pointer">Sign in</span>
+          </SignInButton>{" "}
+          to add moments
+        </p>
       </div>
     </WeekSheetContainer>
   );
