@@ -27,6 +27,10 @@ export default defineSchema(
     imagesBlocks: defineTable({
       momentBlockId: v.id("momentBlocks"),
     }).index("by_moment_block_id", ["momentBlockId"]),
+    images: defineTable({
+      imagesBlockId: v.id("imagesBlocks"),
+      storageId: v.id("_storage"),
+    }),
   },
   { schemaValidation: true }
 );

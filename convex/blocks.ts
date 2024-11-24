@@ -73,6 +73,18 @@ export const deleteMomentBlock = mutation({
           .query("imagesBlocks")
           .filter((q) => q.eq(q.field("momentBlockId"), args.momentBlockId))
           .unique();
+        if (!imagesBlock) throw new Error("ImagesBlockNotFound");
+
+        const images = await ctx.db
+          .query("images")
+          .filter((q) => q.eq(q.field("imagesBlockId"), imagesBlock._id))
+          .collect();
+
+        await Promise.all(
+          images.map((image) => ctx.storage.delete(image.storageId))
+        );
+        await Promise.all(images.map((image) => ctx.db.delete(image._id)));
+        await ctx.db.delete(imagesBlock._id);
         break;
 
       default:
@@ -121,11 +133,29 @@ export const fillRawMomentBlock = query({
           .unique();
         if (!imagesBlock) throw new Error("ImagesBlockNotFound");
 
+        const rawImages = await ctx.db
+          .query("images")
+          .filter((q) => q.eq(q.field("imagesBlockId"), imagesBlock._id))
+          .collect();
+
+        const images = await Promise.all(
+          rawImages.map(async (rawImage) => {
+            const url = await ctx.storage.getUrl(rawImage.storageId);
+            if (!url) throw new Error("ImageUrlNotFound");
+
+            return {
+              imageId: rawImage._id,
+              url,
+            };
+          })
+        );
+
         return {
           momentBlockCreationTime,
           momentBlockId,
           type: "images",
           imagesBlockId: imagesBlock._id,
+          images,
         };
 
       default:

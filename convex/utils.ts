@@ -25,4 +25,10 @@ type JournalBlock = {
 type ImagesBlock = {
   type: "images";
   imagesBlockId: Id<"imagesBlocks">;
+  images: Array<Image>;
+};
+
+type Image = {
+  imageId: Id<"images">;
+  url: string;
 };

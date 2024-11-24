@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
 import { ImageIcon, NotebookPenIcon, TrashIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from "react";
 import {
   getDatesFromWeekNumber,
   renderDate,
@@ -21,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { MomentBlock_Images, MomentBlock_Journal } from "@/convex/utils";
 import { Id } from "@/convex/_generated/dataModel";
+import { useDropzone } from "react-dropzone";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
@@ -92,12 +99,60 @@ function ImagesBlockComponent({
 }: {
   imagesBlock: MomentBlock_Images;
 }) {
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const saveStorageId = useMutation(api.files.saveStorageId);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    acceptedFiles.map((file) => {
+      (async () => {
+        const url = await generateUploadUrl();
+
+        const result = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": file.type },
+          body: file,
+        });
+
+        const { storageId } = await result.json();
+        saveStorageId({
+          storageId,
+          imagesBlockId: imagesBlock.imagesBlockId,
+        }).catch(console.error);
+      })();
+    });
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
   return (
     <BlockContainer
       momentBlockId={imagesBlock.momentBlockId}
       momentBlockCreationTime={imagesBlock.momentBlockCreationTime}
     >
-      <p className="text-sm">images!</p>
+      <div className="flex flex-row gap-2">
+        {imagesBlock.images.map((image) => (
+          <div key={image.imageId} className="w-32 h-32">
+            <img src={image.url} alt="uploaded image" />
+          </div>
+        ))}
+
+        <div
+          {...getRootProps()}
+          className={cn(
+            "w-32 h-32",
+            "border-2 border-dashed rounded-md flex flex-col items-center justify-center",
+            "cursor-pointer transition-colors",
+            isDragActive
+              ? "border-primary bg-primary/10"
+              : "border-gray-300 hover:border-primary"
+          )}
+        >
+          <input {...getInputProps()} accept="image/*" />
+          <p className="text-sm text-gray-500 text-center">
+            Drag & drop or click to select
+          </p>
+        </div>
+      </div>
     </BlockContainer>
   );
 }
