@@ -38,7 +38,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { getWeekBoxCustomColor } from "./helpers/colors";
-import { SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
@@ -93,7 +92,7 @@ function BlockContainer({
       ) : (
         <div />
       )}
-      <div className="flex flex-col gap-1 pt-1">
+      <div className={"flex flex-col gap-2 pt-1"}>
         <div>
           <Badge variant="outline">
             {renderDate(new Date(momentBlockCreationTime), "MM/DD/YY HH:MM")}
@@ -247,7 +246,7 @@ function JournalBlockComponent({
       momentBlockCreationTime={journalBlock.momentBlockCreationTime}
     >
       <Textarea
-        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0"
+        className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0 py-0"
         rows={1}
         autoSize
         placeholder="what's on your mind?"
@@ -292,7 +291,7 @@ function MomentComponent({ moment }: { moment: Moment }) {
             debouncedSendRequest(e.target.value);
           }}
           className={cn(
-            "w-full rounded-none font-bold border-0 shadow-none focus-visible:ring-0 px-0 py-0.5",
+            "w-full rounded-none font-bold border-0 shadow-none focus-visible:ring-0 p-0",
             "h-16 text-4xl"
           )}
           placeholder="something big"
@@ -420,7 +419,7 @@ function AuthenticatedWeekContentWithMoment({
   return (
     <WeekSheetContainer user={user} yearWeek={yearWeek} color={moment.color}>
       <div className="col-span-2 overflow-y-auto">
-        <div className="grid grid-cols-[3rem_1fr]">
+        <div className="grid grid-cols-[3rem_1fr] gap-y-3">
           <MomentComponent moment={moment} />
         </div>
       </div>

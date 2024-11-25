@@ -2,7 +2,6 @@
 
 P0
 
-- Modify colors
 - Button to ffwd thru onboarding
 - Instant command bar
 
