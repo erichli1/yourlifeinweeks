@@ -5,6 +5,10 @@ import {
   YearWeek,
   addOrdinalSuffix,
 } from "./helpers/date-utils";
+import { useNavbar } from "./Navbar";
+import { WrapInTooltip } from "./helpers/components";
+import { Button } from "@/components/ui/button";
+import { FastForwardIcon } from "lucide-react";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
@@ -227,6 +231,25 @@ function ComponentFor90x52({
   );
 }
 
+function SkipOnboardingButton({
+  setOnboardingComplete,
+}: {
+  setOnboardingComplete: (complete: boolean) => void;
+}) {
+  return (
+    <WrapInTooltip text="Skip">
+      <Button
+        variant="outline"
+        size="icon"
+        className="bg-background shadow-md"
+        onClick={() => setOnboardingComplete(true)}
+      >
+        <FastForwardIcon className="h-4 w-4" />
+      </Button>
+    </WrapInTooltip>
+  );
+}
+
 export function Onboarding({
   birthday,
   setOnboardingComplete,
@@ -235,6 +258,7 @@ export function Onboarding({
   setOnboardingComplete: (complete: boolean) => void;
 }) {
   const [stage, setStage] = React.useState<Stage>("oneBigWeek");
+  const { addItem, removeItem } = useNavbar();
 
   const todayRelativeToBirthday =
     getCurrentYearWeekRelativeToBirthday(birthday);
@@ -244,7 +268,17 @@ export function Onboarding({
       setTimeout(() => setStage(stage as Stage), DelayMap[stage])
     );
 
-    return () => timers.forEach(clearTimeout);
+    addItem({
+      key: "skipOnboarding",
+      element: (
+        <SkipOnboardingButton setOnboardingComplete={setOnboardingComplete} />
+      ),
+    });
+
+    return () => {
+      timers.forEach(clearTimeout);
+      removeItem("skipOnboarding");
+    };
   }, []);
 
   return (

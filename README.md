@@ -2,7 +2,6 @@
 
 P0
 
-- Button to ffwd thru onboarding
 - Instant command bar
 
 PRODUCT
@@ -12,7 +11,6 @@ PRODUCT
 ENG
 
 - Change onboarding stages to be state managed rather than timeout based
-- Add way to push elements to the "navbar" from child components
 
 QOL
 
