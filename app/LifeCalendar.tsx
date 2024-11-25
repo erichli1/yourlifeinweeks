@@ -17,6 +17,7 @@ import { debounce } from "lodash";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
@@ -56,16 +57,19 @@ function WeekBoxPopover({
 
 function WeekBox({
   isFilled,
-  yearWeek,
+  year,
+  week,
   user,
   displayProps,
+  setSelectedYearWeek,
 }: {
   isFilled: boolean;
-  yearWeek: YearWeek;
+  year: number;
+  week: number;
   user: User;
   displayProps?: DisplayProps;
+  setSelectedYearWeek: (yearWeek: YearWeek) => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
 
   const modifyHoveringState = useCallback((value: boolean) => {
@@ -77,40 +81,31 @@ function WeekBox({
   }, [modifyHoveringState]);
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger>
-        <Popover open={isHovering}>
-          <PopoverTrigger asChild>
-            <div
-              className={cn(
-                "aspect-square flex items-center justify-center rounded-lg",
-                "transition-colors transition-transform",
-                isFilled ? "bg-filled" : "bg-empty border-filled border-[2px]",
-                isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
-                isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty"),
-                displayProps?.color
-                  ? getWeekBoxCustomColor(displayProps.color, true)
-                  : ""
-              )}
-              onMouseEnter={() => debouncedSendRequest(true)}
-              onMouseLeave={() => debouncedSendRequest(false)}
-            >
-              {displayProps?.displayName && (
-                <FitText text={displayProps.displayName} className="" />
-              )}
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="bg-background w-fit p-2" side="top">
-            <WeekBoxPopover user={user} yearWeek={yearWeek} />
-          </PopoverContent>
-        </Popover>
-      </SheetTrigger>
-      <SheetContent side="right" className="p-0 sm:max-w-full">
-        {/* Radix requires title to be set */}
-        <SheetTitle />
-        <WeekSheetContent user={user} yearWeek={yearWeek} />
-      </SheetContent>
-    </Sheet>
+    <Popover open={isHovering}>
+      <PopoverTrigger asChild>
+        <div
+          className={cn(
+            "aspect-square flex items-center justify-center rounded-lg cursor-pointer",
+            "transition-colors transition-transform",
+            isFilled ? "bg-filled" : "bg-empty border-filled border-[2px]",
+            isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
+            displayProps?.color
+              ? getWeekBoxCustomColor(displayProps.color, true)
+              : ""
+          )}
+          onMouseEnter={() => debouncedSendRequest(true)}
+          onMouseLeave={() => debouncedSendRequest(false)}
+          onClick={() => setSelectedYearWeek({ year, week })}
+        >
+          {displayProps?.displayName && (
+            <FitText text={displayProps.displayName} className="" />
+          )}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="bg-background w-fit p-2" side="top">
+        <WeekBoxPopover user={user} yearWeek={{ year, week }} />
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -122,6 +117,10 @@ type DisplayProps = {
 };
 
 function GridCalendar({ user }: { user: User }) {
+  const [selectedYearWeek, setSelectedYearWeek] = useState<YearWeek | null>(
+    null
+  );
+
   const displayProps = useQuery(api.myFunctions.getDisplayProps);
 
   const displayPropsMap: Map<
@@ -182,14 +181,32 @@ function GridCalendar({ user }: { user: User }) {
                 yearWeek: { year, week: week0Indexed + 1 },
               })}
               user={user}
-              yearWeek={{ year, week: week0Indexed + 1 }}
+              year={year}
+              week={week0Indexed + 1}
               key={`cell-${year}-${week0Indexed + 1}`}
               displayProps={displayPropsMap.get(year)?.get(week0Indexed + 1)}
+              setSelectedYearWeek={setSelectedYearWeek}
             />
           ))}
           <div />
         </React.Fragment>
       ))}
+
+      <Sheet
+        open={!!selectedYearWeek}
+        onOpenChange={(open) => {
+          if (!open) setSelectedYearWeek(null);
+        }}
+      >
+        <SheetContent side="right" className="p-0 sm:max-w-full">
+          {/* Radix requires title & description to be set */}
+          <SheetTitle />
+          <SheetDescription />
+          {selectedYearWeek && (
+            <WeekSheetContent user={user} yearWeek={selectedYearWeek} />
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
