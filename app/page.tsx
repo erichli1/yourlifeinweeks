@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Authenticated,
   Unauthenticated,
@@ -8,17 +8,16 @@ import {
   useMutation,
 } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { SignInButton, SignOutButton, useUser } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
-import { ChevronRight, LogInIcon, LogOutIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Onboarding } from "./Onboarding";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { LifeCalendar } from "./LifeCalendar";
-import { WrapInTooltip } from "./helpers/components";
 import { User } from "./helpers/utils";
+import { Navbar } from "./Navbar";
 
 const MIN_BIRTHDAY_DATE = new Date("1940-01-01");
 
@@ -30,52 +29,6 @@ const isValidDate = (dateStr: string) => {
     parsedDate <= new Date().getTime()
   );
 };
-
-function Navbar({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) return <div>{children}</div>;
-
-  return (
-    <div>
-      {children}
-      <div className="fixed bottom-0 right-0 m-2 flex flex-row gap-1">
-        {user ? (
-          <WrapInTooltip text="Sign out">
-            <SignOutButton>
-              <div
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "icon" }),
-                  "bg-background shadow-md"
-                )}
-              >
-                <LogOutIcon className="h-4 w-4" />
-              </div>
-            </SignOutButton>
-          </WrapInTooltip>
-        ) : (
-          <WrapInTooltip text="Sign in">
-            <SignInButton mode="modal" redirectUrl={window.location.href}>
-              <div
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "icon" }),
-                  "bg-background shadow-md"
-                )}
-              >
-                <LogInIcon className="w-4 h-4" />
-              </div>
-            </SignInButton>
-          </WrapInTooltip>
-        )}
-      </div>
-    </div>
-  );
-}
 
 export default function Home() {
   return (
