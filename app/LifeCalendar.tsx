@@ -29,6 +29,7 @@ import { WeekSheet } from "./WeekSheet";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
+import { WEEK_BOX_CUSTOM_COLORS } from "./helpers/colors";
 
 function WeekBoxPopover({
   user,
@@ -81,18 +82,16 @@ function WeekBox({
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "aspect-square border-[2px] border-filled flex items-center justify-center rounded-lg",
+                "aspect-square flex items-center justify-center rounded-lg",
                 "transition-colors transition-transform",
-                isFilled ? "bg-filled" : "bg-empty",
+                isFilled ? "bg-filled" : "bg-empty border-filled border-[2px]",
                 isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
                 isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
               )}
               onMouseEnter={() => debouncedSendRequest(true)}
               onMouseLeave={() => debouncedSendRequest(false)}
             >
-              {displayName && (
-                <FitText text={displayName} className="font-bold" />
-              )}
+              {displayName && <FitText text={displayName} className="" />}
             </div>
           </PopoverTrigger>
           <PopoverContent className="bg-background w-fit p-2" side="top">

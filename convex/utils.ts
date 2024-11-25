@@ -32,3 +32,20 @@ type Image = {
   imageId: Id<"images">;
   url: string;
 };
+
+export const COLORS = [
+  "red",
+  "coral",
+  "saffron",
+  "pistachio",
+  "zomp",
+  "cerulean",
+] as const;
+
+export const ConvexTypeColor = v.union(
+  v.literal("red"),
+  v.literal("coral"),
+  ...COLORS.map((col) => v.literal(col))
+);
+
+export type Color = (typeof ConvexTypeColor)["type"];

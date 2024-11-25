@@ -41,6 +41,8 @@ function useFitText(text: string) {
       }
     }
 
+    high -= 15;
+
     fontSizeCache.set(cacheKey, high);
     setFontSize(high);
   }, [text]);
@@ -77,7 +79,7 @@ export function FitText({
       <div
         ref={textRef}
         style={{ fontSize: `${fontSize}px`, lineHeight: 1.2 }}
-        className="w-full h-full flex items-center justify-center text-center"
+        className="w-full h-full flex items-center justify-center text-center p-4"
       >
         {text}
       </div>

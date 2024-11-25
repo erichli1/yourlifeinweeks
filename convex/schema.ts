@@ -1,6 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { ConvexTypeMomentBlockType } from "./utils";
+import { ConvexTypeColor, ConvexTypeMomentBlockType } from "./utils";
 
 export default defineSchema(
   {
@@ -15,6 +15,7 @@ export default defineSchema(
       week: v.number(),
       name: v.string(),
       displayName: v.string(),
+      color: v.optional(ConvexTypeColor),
     }),
     momentBlocks: defineTable({
       momentId: v.id("moments"),
