@@ -25,11 +25,12 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { WeekSheet } from "./WeekSheet";
+import { WeekSheetContent } from "./WeekSheet";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
-import { WEEK_BOX_CUSTOM_COLORS } from "./helpers/colors";
+import { getWeekBoxCustomColor } from "./helpers/colors";
+import { Color } from "@/convex/utils";
 
 function WeekBoxPopover({
   user,
@@ -57,12 +58,12 @@ function WeekBox({
   isFilled,
   yearWeek,
   user,
-  displayName,
+  displayProps,
 }: {
   isFilled: boolean;
   yearWeek: YearWeek;
   user: User;
-  displayName?: string;
+  displayProps?: DisplayProps;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -86,12 +87,17 @@ function WeekBox({
                 "transition-colors transition-transform",
                 isFilled ? "bg-filled" : "bg-empty border-filled border-[2px]",
                 isFilled ? "hover:bg-hoverFilled" : "hover:bg-hoverEmpty",
-                isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty")
+                isOpen && (isFilled ? "bg-hoverFilled" : "bg-hoverEmpty"),
+                displayProps?.color
+                  ? getWeekBoxCustomColor(displayProps.color, true)
+                  : ""
               )}
               onMouseEnter={() => debouncedSendRequest(true)}
               onMouseLeave={() => debouncedSendRequest(false)}
             >
-              {displayName && <FitText text={displayName} className="" />}
+              {displayProps?.displayName && (
+                <FitText text={displayProps.displayName} className="" />
+              )}
             </div>
           </PopoverTrigger>
           <PopoverContent className="bg-background w-fit p-2" side="top">
@@ -99,10 +105,10 @@ function WeekBox({
           </PopoverContent>
         </Popover>
       </SheetTrigger>
-      <SheetContent side="right" className="pl-0 sm:max-w-full">
+      <SheetContent side="right" className="p-0 sm:max-w-full">
         {/* Radix requires title to be set */}
         <SheetTitle />
-        <WeekSheet user={user} yearWeek={yearWeek} />
+        <WeekSheetContent user={user} yearWeek={yearWeek} />
       </SheetContent>
     </Sheet>
   );
@@ -110,21 +116,35 @@ function WeekBox({
 
 const MemoizedWeekBox = React.memo(WeekBox);
 
+type DisplayProps = {
+  displayName?: string;
+  color?: Color;
+};
+
 function GridCalendar({ user }: { user: User }) {
-  const displayNames = useQuery(api.myFunctions.getDisplayNames);
+  const displayProps = useQuery(api.myFunctions.getDisplayProps);
 
-  const displayNamesMap: Map<number, Map<number, string>> = useMemo(() => {
-    const map = new Map<number, Map<number, string>>();
+  const displayPropsMap: Map<
+    number,
+    Map<number, DisplayProps>
+  > = useMemo(() => {
+    const map = new Map<number, Map<number, DisplayProps>>();
 
-    if (displayNames)
-      displayNames.forEach(({ year, week, displayName }) => {
-        map.set(year, (map.get(year) || new Map()).set(week, displayName));
+    if (displayProps)
+      displayProps.forEach(({ year, week, displayName, color }) => {
+        map.set(
+          year,
+          (map.get(year) || new Map()).set(week, {
+            displayName,
+            color,
+          })
+        );
       });
 
     return map;
-  }, [displayNames]);
+  }, [displayProps]);
 
-  if (!displayNames) return <></>;
+  if (!displayProps) return <></>;
 
   return (
     <div
@@ -164,7 +184,7 @@ function GridCalendar({ user }: { user: User }) {
               user={user}
               yearWeek={{ year, week: week0Indexed + 1 }}
               key={`cell-${year}-${week0Indexed + 1}`}
-              displayName={displayNamesMap.get(year)?.get(week0Indexed + 1)}
+              displayProps={displayPropsMap.get(year)?.get(week0Indexed + 1)}
             />
           ))}
           <div />

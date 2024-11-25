@@ -24,9 +24,21 @@ import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MomentBlock_Images, MomentBlock_Journal } from "@/convex/utils";
+import {
+  Color,
+  COLORS,
+  MomentBlock_Images,
+  MomentBlock_Journal,
+} from "@/convex/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDropzone } from "react-dropzone";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { getWeekBoxCustomColor } from "./helpers/colors";
+import { SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
@@ -307,6 +319,72 @@ function MomentComponent({ moment }: { moment: Moment }) {
   );
 }
 
+const COLOR_CIRCLE_CLASSES = "w-4 h-4 rounded-full";
+
+function ColorPicker({
+  selectedColor,
+  momentId,
+}: {
+  selectedColor?: Color;
+  momentId: Id<"moments">;
+}) {
+  const updateColor = useMutation(api.myFunctions.updateColor);
+
+  return (
+    <Popover modal>
+      <WrapInTooltip text="Change color" delayDuration={0} asChild>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="icon" className="h-8 w-8">
+            <div
+              className={cn(
+                COLOR_CIRCLE_CLASSES,
+                selectedColor
+                  ? getWeekBoxCustomColor(selectedColor)
+                  : "border-2 border-filled"
+              )}
+            />
+          </Button>
+        </PopoverTrigger>
+      </WrapInTooltip>
+      <PopoverContent className="bg-background w-fit max-w-xs mx-1 p-2">
+        <div className="flex flex-row flex-wrap gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => {
+              updateColor({ momentId, color: undefined }).catch(console.error);
+            }}
+          >
+            <div
+              className={cn(COLOR_CIRCLE_CLASSES, "border-2 border-filled")}
+            />
+          </Button>
+
+          {COLORS.map((color) => (
+            <Button
+              variant="outline"
+              key={`color-picker-option-${color}`}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                updateColor({ momentId, color }).catch(console.error);
+              }}
+            >
+              <div
+                className={cn(
+                  COLOR_CIRCLE_CLASSES,
+                  getWeekBoxCustomColor(color)
+                )}
+              />
+            </Button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function AuthenticatedWeekContentWithMoment({
   user,
   yearWeek,
@@ -340,7 +418,7 @@ function AuthenticatedWeekContentWithMoment({
   }, [sendRequest]);
 
   return (
-    <WeekSheetContainer user={user} yearWeek={yearWeek}>
+    <WeekSheetContainer user={user} yearWeek={yearWeek} color={moment.color}>
       <div className="col-span-2 overflow-y-auto">
         <div className="grid grid-cols-[3rem_1fr]">
           <MomentComponent moment={moment} />
@@ -395,6 +473,8 @@ function AuthenticatedWeekContentWithMoment({
                 }}
               />
             </WrapInTooltip>
+
+            <ColorPicker momentId={moment._id} selectedColor={moment.color} />
 
             <div>
               <WrapInTooltip text="Delete moment" delayDuration={0} asChild>
@@ -504,10 +584,12 @@ function WeekSheetContainer({
   user,
   yearWeek,
   children,
+  color,
 }: {
   user: User;
   yearWeek: YearWeek;
   children: React.ReactNode;
+  color?: Color;
 }) {
   const { start, end } = getDatesFromWeekNumber({
     birthday: user.birthday,
@@ -515,28 +597,33 @@ function WeekSheetContainer({
   });
 
   return (
-    <div className="grid grid-cols-[3rem_1fr] pt-4 pr-4 grid-rows-[auto_1fr_auto] h-full">
-      <div />
-      <div>
-        <div className="flex flex-row gap-1 justify-between items-center">
-          <div className="flex flex-row gap-1 items-center">
-            <div>
-              Year {yearWeek.year}, Week {yearWeek.week}
-            </div>
-          </div>
+    <>
+      <div className={cn("h-1", color && getWeekBoxCustomColor(color))} />
+      <div className="h-full py-4 pr-4">
+        <div className="grid grid-cols-[3rem_1fr] pt-4 pr-4 grid-rows-[auto_1fr_auto] h-full">
+          <div />
           <div>
-            {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
+            <div className="flex flex-row gap-1 justify-between items-center">
+              <div className="flex flex-row gap-1 items-center">
+                <div>
+                  Year {yearWeek.year}, Week {yearWeek.week}
+                </div>
+              </div>
+              <div>
+                {renderDate(start, "MM/DD/YY")} - {renderDate(end, "MM/DD/YY")}
+              </div>
+            </div>
+            <Separator className="my-2" />
           </div>
-        </div>
-        <Separator className="my-2" />
-      </div>
 
-      {children}
-    </div>
+          {children}
+        </div>
+      </div>
+    </>
   );
 }
 
-export function WeekSheet({
+export function WeekSheetContent({
   user,
   yearWeek,
 }: {

@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-import { MomentBlock } from "./utils";
+import { Color, ConvexTypeColor, MomentBlock } from "./utils";
 import { deleteMomentBlock, fillRawMomentBlock } from "./blocks";
 
 export const getUser = query({
@@ -48,6 +48,7 @@ export const getMomentForYearWeek = query({
     _id: Id<"moments">;
     name: string;
     displayName: string;
+    color?: Color;
     momentBlocks: MomentBlock[];
   } | null> => {
     const user = await getUser(ctx, {});
@@ -84,6 +85,7 @@ export const getMomentForYearWeek = query({
       _id: rawMoment._id,
       name: rawMoment.name,
       displayName: rawMoment.displayName,
+      color: rawMoment.color,
       momentBlocks,
     };
   },
@@ -141,7 +143,7 @@ export const renameMoment = mutation({
   },
 });
 
-export const getDisplayNames = query({
+export const getDisplayProps = query({
   args: {},
   handler: async (ctx) => {
     const convexUser = await ctx.auth.getUserIdentity();
@@ -157,6 +159,7 @@ export const getDisplayNames = query({
 
     return moments.map((moment) => ({
       displayName: moment.displayName,
+      color: moment.color,
       year: moment.year,
       week: moment.week,
     }));
@@ -171,6 +174,18 @@ export const updateDisplayName = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.momentId, {
       displayName: args.displayName,
+    });
+  },
+});
+
+export const updateColor = mutation({
+  args: {
+    momentId: v.id("moments"),
+    color: v.optional(ConvexTypeColor),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.momentId, {
+      color: args.color,
     });
   },
 });
