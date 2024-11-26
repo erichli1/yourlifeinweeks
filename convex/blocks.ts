@@ -56,7 +56,7 @@ export const deleteMomentBlock = mutation({
     if (!momentBlock) throw new Error("MomentBlockNotFound");
 
     switch (momentBlock.type) {
-      case "journal":
+      case "journal": {
         const journalBlock = await ctx.db
           .query("journalBlocks")
           .withIndex("by_moment_block_id", (q) =>
@@ -67,8 +67,8 @@ export const deleteMomentBlock = mutation({
 
         await ctx.db.delete(journalBlock._id);
         break;
-
-      case "images":
+      }
+      case "images": {
         const imagesBlock = await ctx.db
           .query("imagesBlocks")
           .filter((q) => q.eq(q.field("momentBlockId"), args.momentBlockId))
@@ -86,12 +86,13 @@ export const deleteMomentBlock = mutation({
         await Promise.all(images.map((image) => ctx.db.delete(image._id)));
         await ctx.db.delete(imagesBlock._id);
         break;
-
-      default:
+      }
+      default: {
         const _exhaustiveCheck: never = momentBlock.type;
         throw new Error(
-          `Found unknown moment block type ${_exhaustiveCheck} when deleting moment block`
+          `Found unknown moment block type ${String(_exhaustiveCheck)} when deleting moment block`
         );
+      }
     }
 
     await ctx.db.delete(args.momentBlockId);
@@ -109,7 +110,7 @@ export const fillRawMomentBlock = query({
     { momentBlockId, momentBlockCreationTime, momentBlockType }
   ): Promise<MomentBlock> => {
     switch (momentBlockType) {
-      case "journal":
+      case "journal": {
         const journalBlock = await ctx.db
           .query("journalBlocks")
           .withIndex("by_moment_block_id", (q) =>
@@ -125,8 +126,8 @@ export const fillRawMomentBlock = query({
           journalBlockId: journalBlock._id,
           entry: journalBlock.entry,
         };
-
-      case "images":
+      }
+      case "images": {
         const imagesBlock = await ctx.db
           .query("imagesBlocks")
           .filter((q) => q.eq(q.field("momentBlockId"), momentBlockId))
@@ -157,12 +158,13 @@ export const fillRawMomentBlock = query({
           imagesBlockId: imagesBlock._id,
           images,
         };
-
-      default:
+      }
+      default: {
         const _exhaustiveCheck: never = momentBlockType;
         throw new Error(
-          `Found unknown moment block type ${_exhaustiveCheck} when filling raw moment block`
+          `Found unknown moment block type ${String(_exhaustiveCheck)} when filling raw moment block`
         );
+      }
     }
   },
 });

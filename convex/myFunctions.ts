@@ -106,7 +106,7 @@ export const createMomentForYearWeek = mutation({
       year: args.year,
       week: args.week,
       name: args.name,
-      displayName: "🎉",
+      displayName: "",
     });
   },
 });

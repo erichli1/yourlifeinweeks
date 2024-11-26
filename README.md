@@ -1,18 +1,26 @@
 # TODOs
 
-P0
+QOL
 
-- Instant command bar
+Views
+
+- Toggle to certain views
+
+Command bar
+
+- Searching moments
+- Searching by year / week
+- This week / next week overrides
+
+Moment
+
+- Be able to navigate entirely without mouse
 
 PRODUCT
 
 - Get more info from user (ex: hopes and dreams)
-
-ENG
-
-- Change onboarding stages to be state managed rather than timeout based
+- Better onboarding of various features
 
 QOL
 
 - Better handle grabbing and cursor
-- Make date picker [cuter](https://github.com/dubinc/dub/blob/7abb88671d68d107004678b47fecd7f7ba40d918/apps/web/ui/modals/add-edit-link-modal/expiration-section.tsx)
