@@ -19,7 +19,6 @@ import {
   SheetContent,
   SheetDescription,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   Popover,
@@ -32,6 +31,7 @@ import { useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
 import { getWeekBoxCustomColor } from "./helpers/colors";
 import { Color } from "@/convex/utils";
+import { CmdK } from "./helpers/cmd-k";
 
 function WeekBoxPopover({
   user,
@@ -207,6 +207,8 @@ function GridCalendar({ user }: { user: User }) {
           )}
         </SheetContent>
       </Sheet>
+
+      <CmdK birthday={user.birthday} setYearWeek={setSelectedYearWeek} />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import * as chrono from "chrono-node";
+
 export function didYearWeekPassRelativeToToday({
   birthday,
   yearWeek,
@@ -19,34 +21,43 @@ export type YearWeek = {
   week: number; // 1-indexed
 };
 
-function getMostRecentBirthday(birthday: Date): Date {
-  const today = new Date();
-
+function getMostRecentBirthdayRelativeToDate(birthday: Date, date: Date): Date {
   const mostRecentBirthday = new Date(birthday);
   const birthdayThisYear = new Date(birthday);
-  birthdayThisYear.setFullYear(today.getFullYear());
+  birthdayThisYear.setFullYear(date.getFullYear());
 
-  if (birthdayThisYear.getTime() > today.getTime())
-    mostRecentBirthday.setFullYear(today.getFullYear() - 1);
-  else mostRecentBirthday.setFullYear(today.getFullYear());
+  if (birthdayThisYear.getTime() > date.getTime())
+    mostRecentBirthday.setFullYear(date.getFullYear() - 1);
+  else mostRecentBirthday.setFullYear(date.getFullYear());
 
   return mostRecentBirthday;
 }
 
-export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
-  const today = new Date();
+function getMostRecentBirthday(birthday: Date): Date {
+  return getMostRecentBirthdayRelativeToDate(birthday, new Date());
+}
 
-  const mostRecentBirthday = getMostRecentBirthday(birthday);
+export function getYearWeekOfDate({
+  birthday,
+  date,
+}: {
+  birthday: Date;
+  date: Date;
+}): YearWeek {
+  const mostRecentBirthday = getMostRecentBirthdayRelativeToDate(
+    birthday,
+    date
+  );
 
-  let yearsOld = today.getFullYear() - birthday.getFullYear();
-  if (today.getFullYear() === mostRecentBirthday.getFullYear()) yearsOld += 1;
+  let yearsOld = date.getFullYear() - birthday.getFullYear();
+  if (date.getFullYear() === mostRecentBirthday.getFullYear()) yearsOld += 1;
 
   // Since the most recent birthday, calculate the number of weeks passed.
   // If in the extra few days of the new year, it's possible to have 52 weeks passed so
   // we limit it to 51.
   const numWeeksSinceMostRecentBirthday = Math.min(
     Math.floor(
-      (today.getTime() - mostRecentBirthday.getTime()) /
+      (date.getTime() - mostRecentBirthday.getTime()) /
         (7 * 24 * 60 * 60 * 1000)
     ),
     51
@@ -56,6 +67,10 @@ export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
     year: yearsOld - 1,
     week: numWeeksSinceMostRecentBirthday + 1,
   };
+}
+
+export function getCurrentYearWeekRelativeToBirthday(birthday: Date): YearWeek {
+  return getYearWeekOfDate({ birthday, date: new Date() });
 }
 
 export function addOrdinalSuffix(val: number): string {
@@ -95,7 +110,10 @@ export function getDatesFromWeekNumber({
   return { start: startOfWeek, end: endOfWeek };
 }
 
-export function renderDate(date: Date, format: "MM/DD/YY" | "MM/DD/YY HH:MM") {
+export function renderDate(
+  date: Date,
+  format: "MM/DD/YY" | "MM/DD/YY HH:MM" | "MMM DD YYYY"
+) {
   if (format === "MM/DD/YY")
     return date.toLocaleDateString("en-US", {
       month: "2-digit",
@@ -112,5 +130,26 @@ export function renderDate(date: Date, format: "MM/DD/YY" | "MM/DD/YY HH:MM") {
       minute: "2-digit",
     });
 
+  if (format === "MMM DD YYYY")
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+
   return date.toLocaleDateString();
 }
+
+export const parseDateTime = (str: Date | string) => {
+  if (str instanceof Date) return str;
+  return chrono.parseDate(str);
+};
+
+export const isValidYearWeek = (yearWeek: YearWeek): boolean => {
+  return (
+    yearWeek.year >= 0 &&
+    yearWeek.year <= 89 &&
+    yearWeek.week >= 1 &&
+    yearWeek.week <= 52
+  );
+};
