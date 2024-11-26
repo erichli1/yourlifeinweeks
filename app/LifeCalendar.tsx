@@ -102,7 +102,10 @@ function WeekBox({
           )}
         </div>
       </PopoverTrigger>
-      <PopoverContent className="bg-background w-fit p-2" side="top">
+      <PopoverContent
+        className="bg-background w-fit p-2 pointer-events-none"
+        side="top"
+      >
         <WeekBoxPopover user={user} yearWeek={{ year, week }} />
       </PopoverContent>
     </Popover>
@@ -159,7 +162,7 @@ function GridCalendar({ user }: { user: User }) {
       {Array.from({ length: 52 }).map((_, i) => (
         <div
           key={`header-week-${i}`}
-          className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky top-0"
+          className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky top-0 select-none"
         >
           {i + 1}
         </div>
@@ -170,7 +173,7 @@ function GridCalendar({ user }: { user: User }) {
         <React.Fragment key={`year-${year}`}>
           <div
             key={`header-year-${year}`}
-            className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky left-0"
+            className="text-[40px] text-center flex items-center justify-center overflow-hidden bg-background sticky left-0 select-none"
           >
             {year}
           </div>

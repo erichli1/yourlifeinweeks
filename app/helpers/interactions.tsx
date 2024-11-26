@@ -86,14 +86,9 @@ export function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
       }
     };
 
-    // Add event listener for zooming
-    const pageElement = pageRef.current;
-    if (pageElement)
-      pageElement.addEventListener("wheel", handleWheel, { passive: false });
-
-    // Remove event listener on cleanup
+    window.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
-      if (pageElement) pageElement.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("wheel", handleWheel);
     };
   }, [pageRef]);
 
