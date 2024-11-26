@@ -79,7 +79,7 @@ export function useZoom(pageRef: React.RefObject<HTMLDivElement>) {
     const handleWheel = (e: WheelEvent) => {
       if (e.altKey) {
         e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const delta = e.deltaY > 0 ? 0.95 : 1.05;
         setZoom((prevZoom) =>
           Math.min(Math.max(prevZoom * delta, DEFAULT_ZOOM), 10)
         );
