@@ -6,11 +6,19 @@ export default defineSchema(
   {
     users: defineTable({
       name: v.string(),
-      birthday: v.number(),
       tokenIdentifier: v.string(),
+      activeAccountId: v.id("accounts"),
+    }),
+    userAccounts: defineTable({
+      userId: v.id("users"),
+      accountId: v.id("accounts"),
+    }),
+    accounts: defineTable({
+      name: v.string(),
+      birthday: v.number(),
     }),
     moments: defineTable({
-      userId: v.id("users"),
+      accountId: v.id("accounts"),
       year: v.number(),
       week: v.number(),
       name: v.string(),

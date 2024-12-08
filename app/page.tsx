@@ -150,7 +150,9 @@ function CreateUserFlow() {
   const [birthday, setBirthday] = useState<string>("");
   const [name, setName] = useState<string>("");
 
-  const createUser = useMutation(api.myFunctions.createUser);
+  const initializeUserAndAccount = useMutation(
+    api.myFunctions.initializeUserAndAccount
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -161,7 +163,7 @@ function CreateUserFlow() {
   const canSubmit = isValidDate(birthday) && name.length > 0;
 
   const handleSubmit = () => {
-    createUser({
+    initializeUserAndAccount({
       name,
       birthday: new Date(birthday + "T00:00:00").getTime(),
     }).catch(console.error);
@@ -195,26 +197,26 @@ function CreateUserFlow() {
 }
 
 function SignedInContent() {
-  const user = useQuery(api.myFunctions.getUser);
+  const account = useQuery(api.myFunctions.getAccount);
 
-  // Remove URL params if user is found
+  // Remove URL params if account is found
   useEffect(() => {
-    if (user) {
+    if (account) {
       const url = new URL(window.location.href);
       url.search = "";
       window.history.replaceState({}, "", url);
     }
-  }, [user]);
+  }, [account]);
 
-  if (user === undefined) return <LoadingScreen />;
-  if (user === null) return <CreateUserFlow />;
+  if (account === undefined) return <LoadingScreen />;
+  if (account === null) return <CreateUserFlow />;
 
   return (
     <LifeCalendar
       user={{
         signedIn: true,
-        birthday: new Date(user.birthday),
-        user,
+        birthday: new Date(account.birthday),
+        account,
       }}
     />
   );

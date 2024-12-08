@@ -4,22 +4,25 @@ import { Id } from "./_generated/dataModel";
 import { Color, ConvexTypeColor, MomentBlock } from "./utils";
 import { deleteMomentBlock, fillRawMomentBlock } from "./blocks";
 
-export const getUser = query({
+export const getAccount = query({
   args: {},
   handler: async (ctx) => {
     const authenticatedUser = await ctx.auth.getUserIdentity();
-    if (!authenticatedUser) throw new Error("NotAuthenticated");
+    if (!authenticatedUser) throw new Error("User is not authenticated");
 
-    return await ctx.db
+    const user = await ctx.db
       .query("users")
       .filter((q) =>
         q.eq(q.field("tokenIdentifier"), authenticatedUser.tokenIdentifier)
       )
       .unique();
+    if (!user) return null;
+
+    return await ctx.db.get(user.activeAccountId);
   },
 });
 
-export const createUser = mutation({
+export const initializeUserAndAccount = mutation({
   args: {
     name: v.string(),
     birthday: v.number(),
@@ -28,10 +31,20 @@ export const createUser = mutation({
     const authenticatedUser = await ctx.auth.getUserIdentity();
     if (!authenticatedUser) throw new Error("NotAuthenticated");
 
-    await ctx.db.insert("users", {
+    const accountId = await ctx.db.insert("accounts", {
       name: args.name,
       birthday: args.birthday,
+    });
+
+    const userId = await ctx.db.insert("users", {
+      name: args.name,
       tokenIdentifier: authenticatedUser.tokenIdentifier,
+      activeAccountId: accountId,
+    });
+
+    await ctx.db.insert("userAccounts", {
+      userId,
+      accountId,
     });
   },
 });
@@ -51,8 +64,8 @@ export const getMomentForYearWeek = query({
     color?: Color;
     momentBlocks: MomentBlock[];
   } | null> => {
-    const user = await getUser(ctx, {});
-    if (!user) throw new Error("NoCreatedAccount");
+    const account = await getAccount(ctx, {});
+    if (!account) throw new Error("No account found");
 
     const rawMoment = await ctx.db
       .query("moments")
@@ -98,11 +111,11 @@ export const createMomentForYearWeek = mutation({
     name: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getUser(ctx, {});
-    if (!user) throw new Error("NoCreatedAccount");
+    const account = await getAccount(ctx, {});
+    if (!account) throw new Error("No account found");
 
     await ctx.db.insert("moments", {
-      userId: user._id,
+      accountId: account._id,
       year: args.year,
       week: args.week,
       name: args.name,
@@ -149,12 +162,12 @@ export const getDisplayProps = query({
     const convexUser = await ctx.auth.getUserIdentity();
     if (!convexUser) return [];
 
-    const user = await getUser(ctx, {});
-    if (!user) return [];
+    const account = await getAccount(ctx, {});
+    if (!account) return [];
 
     const moments = await ctx.db
       .query("moments")
-      .filter((q) => q.eq(q.field("userId"), user._id))
+      .filter((q) => q.eq(q.field("accountId"), account._id))
       .collect();
 
     return moments.map((moment) => ({
