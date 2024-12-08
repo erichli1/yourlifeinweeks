@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { LifeCalendar } from "./LifeCalendar";
 import { User } from "./helpers/utils";
 import { Navbar } from "./Navbar";
+import { cn } from "@/lib/utils";
 
 const MIN_BIRTHDAY_DATE = new Date("1940-01-01");
 
@@ -146,13 +147,23 @@ function InitialState() {
   );
 }
 
-function CreateUserFlow() {
+export function CreateAccountFlow({
+  onSubmit,
+  className,
+  copy,
+  hideButtonIfNotValid = true,
+}: {
+  onSubmit: (name: string, birthday: number) => void;
+  className?: string;
+  copy?: Partial<{
+    name: string;
+    birthday: string;
+    button: string;
+  }>;
+  hideButtonIfNotValid?: boolean;
+}) {
   const [birthday, setBirthday] = useState<string>("");
   const [name, setName] = useState<string>("");
-
-  const initializeUserAndAccount = useMutation(
-    api.myFunctions.initializeUserAndAccount
-  );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -162,17 +173,20 @@ function CreateUserFlow() {
 
   const canSubmit = isValidDate(birthday) && name.length > 0;
 
-  const handleSubmit = () => {
-    initializeUserAndAccount({
-      name,
-      birthday: new Date(birthday + "T00:00:00").getTime(),
-    }).catch(console.error);
+  const handleSubmit = () =>
+    onSubmit(name, new Date(birthday + "T00:00:00").getTime());
+
+  const actualCopy = {
+    name: "What's your name?",
+    birthday: "What's your birthday?",
+    button: "All done",
+    ...copy,
   };
 
   return (
-    <div className="flex flex-col gap-4 items-center justify-center h-screen p-4">
+    <div className={cn("flex flex-col gap-4", className)}>
       <div className="grid w-full max-w-sm gap-1.5">
-        <Label htmlFor="name">What&apos;s your name?</Label>
+        <Label htmlFor="name">{actualCopy.name}</Label>
         <Input
           type="text"
           id="name"
@@ -183,13 +197,13 @@ function CreateUserFlow() {
       </div>
 
       <div className="grid w-full max-w-sm items-center gap-1.5">
-        <Label htmlFor="birthday">What&apos;s your birthday?</Label>
+        <Label htmlFor="birthday">{actualCopy.birthday}</Label>
         <DatePicker date={birthday} setDate={setBirthday} />
       </div>
 
-      {canSubmit ? (
+      {!hideButtonIfNotValid || canSubmit ? (
         <div className="w-full max-w-sm">
-          <Button onClick={handleSubmit}>All done</Button>
+          <Button onClick={handleSubmit}>{actualCopy.button}</Button>
         </div>
       ) : null}
     </div>
@@ -197,7 +211,10 @@ function CreateUserFlow() {
 }
 
 function SignedInContent() {
-  const account = useQuery(api.myFunctions.getAccount);
+  const account = useQuery(api.myFunctions.getActiveAccount);
+  const initializeUserAndAccount = useMutation(
+    api.myFunctions.initializeUserAndAccount
+  );
 
   // Remove URL params if account is found
   useEffect(() => {
@@ -209,7 +226,18 @@ function SignedInContent() {
   }, [account]);
 
   if (account === undefined) return <LoadingScreen />;
-  if (account === null) return <CreateUserFlow />;
+  if (account === null)
+    return (
+      <CreateAccountFlow
+        className="h-screen items-center justify-center p-4"
+        onSubmit={(name, birthday) => {
+          initializeUserAndAccount({
+            name,
+            birthday,
+          }).catch(console.error);
+        }}
+      />
+    );
 
   return (
     <LifeCalendar

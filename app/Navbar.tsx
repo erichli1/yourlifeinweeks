@@ -1,8 +1,18 @@
 "use client";
 
-import { buttonVariants } from "@/components/ui/button";
-import { SignInButton, SignOutButton, useUser } from "@clerk/clerk-react";
-import { LogInIcon, LogOutIcon } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  SignInButton,
+  SignOutButton,
+  useUser as useClerkUser,
+} from "@clerk/clerk-react";
+import {
+  CheckIcon,
+  LogInIcon,
+  LogOutIcon,
+  PlusIcon,
+  UserIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useEffect,
@@ -13,6 +23,16 @@ import {
   useCallback,
 } from "react";
 import { WrapInTooltip } from "./helpers/components";
+import { api } from "@/convex/_generated/api";
+import { useMutation, useQuery } from "convex/react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { CreateAccountFlow } from "./page";
+import { Id } from "@/convex/_generated/dataModel";
 
 type NavbarItem = {
   key: string;
@@ -34,8 +54,98 @@ export function useNavbar() {
   return context;
 }
 
+function ChangeAccountButton({ accountId }: { accountId: Id<"accounts"> }) {
+  const accounts = useQuery(api.myFunctions.getAccountsForUser);
+
+  const changeActiveAccount = useMutation(api.myFunctions.changeActiveAccount);
+  const createNewAccountForExistingUser = useMutation(
+    api.myFunctions.createNewAccountForExistingUser
+  );
+  const [createAccountDialogOpen, setCreateAccountDialogOpen] = useState(false);
+
+  if (!accounts) return null;
+
+  return (
+    <div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <div>
+            <WrapInTooltip text="Accounts" asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="bg-background shadow-md"
+              >
+                <UserIcon className="h-4 w-4" />
+              </Button>
+            </WrapInTooltip>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="bg-background max-w-xs text-sm p-2">
+          {accounts.map((account) => (
+            <Button
+              variant="ghost"
+              className="bg-background hover:bg-hoverEmpty w-full"
+              key={account._id}
+              onClick={() => {
+                changeActiveAccount({ accountId: account._id }).catch(
+                  console.error
+                );
+              }}
+            >
+              {accountId === account._id && (
+                <CheckIcon className="w-4 h-4 mr-2" />
+              )}
+              <p className="text-left w-full">{account.name}</p>
+            </Button>
+          ))}
+
+          <Button
+            variant="ghost"
+            className="bg-background hover:bg-hoverEmpty w-full"
+            onClick={() => setCreateAccountDialogOpen(true)}
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            <p className="text-left w-full">Add account</p>
+          </Button>
+        </PopoverContent>
+      </Popover>
+
+      <Dialog
+        open={createAccountDialogOpen}
+        onOpenChange={setCreateAccountDialogOpen}
+      >
+        <DialogContent className="!animate-none">
+          <DialogTitle>Create new account</DialogTitle>
+          <CreateAccountFlow
+            onSubmit={(name, birthday) => {
+              createNewAccountForExistingUser({ name, birthday }).catch(
+                console.error
+              );
+              setCreateAccountDialogOpen(false);
+            }}
+            hideButtonIfNotValid={false}
+            copy={{
+              name: "Account name",
+              birthday: "Birthday",
+              button: "Create",
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function ChangeAccountButtonContainer() {
+  const activeAccount = useQuery(api.myFunctions.getActiveAccount);
+  if (!activeAccount) return null;
+
+  return <ChangeAccountButton accountId={activeAccount._id} />;
+}
+
 export function Navbar({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
+  const { user: clerkUser } = useClerkUser();
   const [isMounted, setIsMounted] = useState(false);
   const [items, setItems] = useState<Record<string, ReactNode>>({});
 
@@ -66,7 +176,8 @@ export function Navbar({ children }: { children: React.ReactNode }) {
         {children}
         <div className="fixed bottom-0 right-0 m-2 flex flex-row gap-1">
           {Object.values(items)}
-          {user ? (
+          {clerkUser && <ChangeAccountButtonContainer />}
+          {clerkUser ? (
             <WrapInTooltip text="Sign out">
               <SignOutButton>
                 <div

@@ -1,6 +1,10 @@
 # TODOs
 
-QOL
+Account
+
+- Better navbar menu
+- Renaming accounts
+- Deleting accounts
 
 Views
 

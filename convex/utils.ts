@@ -49,3 +49,7 @@ export const ConvexTypeColor = v.union(
 );
 
 export type Color = (typeof ConvexTypeColor)["type"];
+
+export function isNotNull<T>(item: T | null | undefined): item is T {
+  return item != null;
+}
