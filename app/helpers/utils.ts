@@ -4,7 +4,9 @@ export type User =
   | {
       signedIn: true;
       birthday: Date;
-      account: NonNullable<(typeof api.myFunctions.getAccount)["_returnType"]>;
+      account: NonNullable<
+        (typeof api.myFunctions.getActiveAccount)["_returnType"]
+      >;
     }
   | {
       signedIn: false;
