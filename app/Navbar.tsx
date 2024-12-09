@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { CreateAccountFlow } from "./page";
+import { CreateAccountFlow } from "./CreateAccountFlow";
 import { Id } from "@/convex/_generated/dataModel";
 
 type NavbarItem = {
