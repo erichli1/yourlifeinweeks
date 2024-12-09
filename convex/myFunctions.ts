@@ -1,7 +1,13 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-import { Color, ConvexTypeColor, isNotNull, MomentBlock } from "./utils";
+import {
+  Color,
+  ConvexTypeColor,
+  getRandomColor,
+  isNotNull,
+  MomentBlock,
+} from "./utils";
 import { deleteMomentBlock, fillRawMomentBlock } from "./blocks";
 
 const getUser = query({
@@ -183,6 +189,7 @@ export const createMomentForYearWeek = mutation({
       week: args.week,
       name: args.name,
       displayName: "",
+      color: getRandomColor(),
     });
   },
 });

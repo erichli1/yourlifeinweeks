@@ -50,6 +50,10 @@ export const ConvexTypeColor = v.union(
 
 export type Color = (typeof ConvexTypeColor)["type"];
 
+export const getRandomColor = () => {
+  return COLORS[Math.floor(Math.random() * COLORS.length)];
+};
+
 export function isNotNull<T>(item: T | null | undefined): item is T {
   return item != null;
 }
