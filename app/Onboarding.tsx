@@ -71,24 +71,8 @@ const StageDirections: Record<
   },
 };
 
-function Title({
-  stage,
-  todayRelativeToBirthday,
-  title,
-}: {
-  stage: Stage;
-  todayRelativeToBirthday: YearWeek;
-  title: string | null;
-}) {
+function Title({ title }: { title: string | null }) {
   if (!title) return <div>&nbsp;</div>;
-
-  if (stage === "oneFilledLife")
-    return (
-      <div className={cn(fadeInClasses, duration500Ms)}>
-        Welcome to the {addOrdinalSuffix(todayRelativeToBirthday.week)} week of
-        your {addOrdinalSuffix(todayRelativeToBirthday.year)} year of life.
-      </div>
-    );
 
   return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
 }
@@ -309,8 +293,6 @@ export function Onboarding({
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
       <Title
-        stage={stage}
-        todayRelativeToBirthday={todayRelativeToBirthday}
         title={currStageDirections.title(
           todayRelativeToBirthday.week,
           todayRelativeToBirthday.year
