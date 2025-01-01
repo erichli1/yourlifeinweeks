@@ -31,46 +31,57 @@ const StageList = [
 
 type Stage = (typeof StageList)[number];
 
-type View = "1x52" | "90x52";
+const getNextStage = (stage: Stage): Stage | null => {
+  const index = StageList.indexOf(stage);
 
-const ViewMap: Record<Stage, View> = {
-  oneBigWeek: "1x52",
-  oneSmallWeek: "1x52",
-  oneFullYear: "1x52",
-  oneSmallYear: "90x52",
-  oneFullLife: "90x52",
-  oneFilledLife: "90x52",
+  if (index === StageList.length - 1) return null;
+  else return StageList[index + 1];
 };
 
-const DelayMap: Record<Stage, number> = {
-  oneBigWeek: 0,
-  oneSmallWeek: 2000,
-  oneFullYear: 4000,
-  oneSmallYear: 8000,
-  oneFullLife: 9000,
-  oneFilledLife: 18000,
-};
-
-const TitleMap: Record<Stage, string | null> = {
-  oneBigWeek: "This is one week of your life.",
-  oneSmallWeek: null,
-  oneFullYear: "This is one year of your life.",
-  oneSmallYear: null,
-  oneFullLife: "This is your life.",
-  // PLACEHOLDER TEXT, OVERRIDEN IN COMPONENT
-  oneFilledLife: "This is how you've lived your life.",
+const StageDirections: Record<
+  Stage,
+  {
+    view: "1x52" | "90x52";
+    timeToSwitch: number | null;
+    title: (week: number, year: number) => string | null;
+  }
+> = {
+  oneBigWeek: {
+    view: "1x52",
+    timeToSwitch: 2000,
+    title: () => "This is one week of your life.",
+  },
+  oneSmallWeek: { view: "1x52", timeToSwitch: 2000, title: () => null },
+  oneFullYear: {
+    view: "1x52",
+    timeToSwitch: 4000,
+    title: () => "This is one year of your life.",
+  },
+  oneSmallYear: { view: "90x52", timeToSwitch: 1000, title: () => null },
+  oneFullLife: {
+    view: "90x52",
+    timeToSwitch: 9000,
+    title: () => "This is your life.",
+  },
+  oneFilledLife: {
+    view: "90x52",
+    timeToSwitch: null,
+    title: (week, year) => `Welcome to the ${addOrdinalSuffix(week)} week of
+        your ${addOrdinalSuffix(year)} year of life.`,
+  },
 };
 
 function Title({
   stage,
   todayRelativeToBirthday,
+  title,
 }: {
   stage: Stage;
   todayRelativeToBirthday: YearWeek;
+  title: string | null;
 }) {
-  const title = TitleMap[stage];
-
   if (!title) return <div>&nbsp;</div>;
+
   if (stage === "oneFilledLife")
     return (
       <div className={cn(fadeInClasses, duration500Ms)}>
@@ -78,6 +89,7 @@ function Title({
         your {addOrdinalSuffix(todayRelativeToBirthday.year)} year of life.
       </div>
     );
+
   return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
 }
 
@@ -257,17 +269,31 @@ export function Onboarding({
   birthday: Date;
   setOnboardingComplete: (complete: boolean) => void;
 }) {
-  const [stage, setStage] = React.useState<Stage>("oneBigWeek");
+  const [stage, setStage] = React.useState<Stage>("oneFilledLife");
+  const currStageDirections = StageDirections[stage];
+
   const { addItem, removeItem } = useNavbar();
 
   const todayRelativeToBirthday =
     getCurrentYearWeekRelativeToBirthday(birthday);
 
+  // Handle stage transitions
   React.useEffect(() => {
-    const timers = StageList.filter((s) => s !== "oneBigWeek").map((stage) =>
-      setTimeout(() => setStage(stage as Stage), DelayMap[stage])
-    );
+    const nextStage = getNextStage(stage);
+    let timeOutId: NodeJS.Timeout;
 
+    if (nextStage && currStageDirections.timeToSwitch) {
+      timeOutId = setTimeout(
+        () => setStage(nextStage),
+        currStageDirections.timeToSwitch
+      );
+    }
+
+    return () => clearTimeout(timeOutId);
+  }, [stage, setStage, currStageDirections]);
+
+  // Add skip onboarding button to the navbar
+  React.useEffect(() => {
     addItem({
       key: "skipOnboarding",
       element: (
@@ -276,14 +302,20 @@ export function Onboarding({
     });
 
     return () => {
-      timers.forEach(clearTimeout);
       removeItem("skipOnboarding");
     };
   }, [addItem, removeItem, setOnboardingComplete]);
 
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
-      <Title stage={stage} todayRelativeToBirthday={todayRelativeToBirthday} />
+      <Title
+        stage={stage}
+        todayRelativeToBirthday={todayRelativeToBirthday}
+        title={currStageDirections.title(
+          todayRelativeToBirthday.week,
+          todayRelativeToBirthday.year
+        )}
+      />
 
       <div
         className={cn(
@@ -294,17 +326,20 @@ export function Onboarding({
         style={{
           gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
           height:
-            ViewMap[stage] === "90x52"
+            currStageDirections.view === "90x52"
               ? "min(95vh, (95vw * 90) / 52)"
               : "calc((100vw - 2rem) / 52)",
           width:
-            ViewMap[stage] === "90x52"
+            currStageDirections.view === "90x52"
               ? "min(95vw, (95vh * 52) / 90)"
               : "calc(100vw - 2rem)",
         }}
       >
-        {ViewMap[stage] === "1x52" && <ComponentFor1x52 stage={stage} />}
-        {ViewMap[stage] === "90x52" && (
+        {currStageDirections.view === "1x52" && (
+          <ComponentFor1x52 stage={stage} />
+        )}
+
+        {currStageDirections.view === "90x52" && (
           <ComponentFor90x52
             stage={stage}
             todayRelativeToBirthday={todayRelativeToBirthday}
