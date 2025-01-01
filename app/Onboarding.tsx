@@ -9,6 +9,7 @@ import { useNavbar } from "./Navbar";
 import { WrapInTooltip } from "./helpers/components";
 import { Button } from "@/components/ui/button";
 import { FastForwardIcon } from "lucide-react";
+import { useMediaQuery } from "react-responsive";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
 const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
@@ -149,6 +150,14 @@ const MemoizedBox = React.memo(function Box({
   );
 });
 
+const ITERATION_DELAY = 5;
+const DELAY_BEFORE_SWITCHING_SCREEN = 5000;
+const BOXES_TO_FILL_PER_ITERATION = {
+  SLOW: 1,
+  MEDIUM: 2,
+  FAST: 4,
+};
+
 function ComponentFor90x52({
   stage,
   todayRelativeToBirthday,
@@ -164,29 +173,44 @@ function ComponentFor90x52({
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
 
+    const isDoneFilling =
+      todayRelativeToBirthday.year <= rowFilling &&
+      todayRelativeToBirthday.week <= columnFilling;
+    const isFillingRow = columnFilling < 51;
+    const isFillingFirstOrLastRow =
+      rowFilling === todayRelativeToBirthday.year || rowFilling === 0;
+    const isFillingSecondOrSecondLastRow =
+      rowFilling === todayRelativeToBirthday.year - 1 || rowFilling === 1;
+
     if (stage === "oneFilledLife") {
       timer = setTimeout(() => {
-        if (
-          todayRelativeToBirthday.year <= rowFilling &&
-          todayRelativeToBirthday.week <= columnFilling
-        )
+        // If done filling
+        if (isDoneFilling) {
+          // Delay before switching to main screen
           setTimeout(() => {
             setOnboardingComplete(true);
-          }, 5000);
-        else if (columnFilling < 51) {
-          if (rowFilling === todayRelativeToBirthday.year || rowFilling === 0)
-            setColumnFilling((prev) => prev + 1);
-          else if (
-            rowFilling === todayRelativeToBirthday.year - 1 ||
-            rowFilling === 1
-          )
-            setColumnFilling((prev) => prev + 2);
-          else setColumnFilling((prev) => prev + 4);
-        } else {
+          }, DELAY_BEFORE_SWITCHING_SCREEN);
+        }
+        // If currently filling a row
+        else if (isFillingRow) {
+          // If at the first or last row, iterate slowly
+          if (isFillingFirstOrLastRow)
+            setColumnFilling((prev) => prev + BOXES_TO_FILL_PER_ITERATION.SLOW);
+          // If at the second or second last row, iterate faster
+          else if (isFillingSecondOrSecondLastRow)
+            setColumnFilling(
+              (prev) => prev + BOXES_TO_FILL_PER_ITERATION.MEDIUM
+            );
+          // If at a "normal" row, iterate fastest
+          else
+            setColumnFilling((prev) => prev + BOXES_TO_FILL_PER_ITERATION.FAST);
+        }
+        // If done filling a row, move to the next row
+        else {
           setRowFilling((prev) => prev + 1);
           setColumnFilling(0);
         }
-      }, 5);
+      }, ITERATION_DELAY);
     }
 
     return () => clearTimeout(timer);
@@ -290,6 +314,8 @@ export function Onboarding({
     };
   }, [addItem, removeItem, setOnboardingComplete]);
 
+  const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
+
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
       <Title
@@ -301,9 +327,10 @@ export function Onboarding({
 
       <div
         className={cn(
-          "relative grid gap-[2px] w-full",
+          "relative grid w-full",
           fadeInClasses,
-          duration500Ms
+          duration500Ms,
+          isMobile ? "gap-[0.5px]" : "gap-[2px]"
         )}
         style={{
           gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
