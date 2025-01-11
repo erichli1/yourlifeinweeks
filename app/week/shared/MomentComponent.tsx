@@ -299,7 +299,9 @@ function EditName({ moment, isMobile }: { moment: Moment; isMobile: boolean }) {
       className={cn(
         "font-bold",
         !isMobile &&
-          "w-full rounded-none border-0 shadow-none focus-visible:ring-0 p-0 h-16 text-4xl"
+          "w-full rounded-none border-0 shadow-none focus-visible:ring-0 p-0 h-16 text-4xl",
+        isMobile &&
+          "w-full rounded-none border-0 shadow-none focus-visible:ring-0 p-0 h-8 text-2xl"
       )}
       placeholder="something big"
     />

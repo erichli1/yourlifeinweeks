@@ -13,6 +13,7 @@ import { CreateImagesBlock, CreateJournalBlock } from "./shared/CreateBlock";
 import { DeleteMoment } from "./shared/DeleteMoment";
 import { EditDisplayName } from "./shared/EditDisplayName";
 import { ColorPicker } from "./shared/ColorPicker";
+import { Separator } from "@/components/ui/separator";
 type DisplayProps = {
   displayName?: string;
   color?: Color;
@@ -86,16 +87,16 @@ export function MobileWeekContainer({
         )}
       />
 
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-row gap-1">
-          <DeleteMoment momentId={moment._id} />
-          <CreateJournalBlock momentId={moment._id} />
-          <CreateImagesBlock momentId={moment._id} />
-          <EditDisplayName moment={moment} />
-        </div>
-      </div>
-
       <MomentComponent moment={moment} isMobile={true} />
+
+      <Separator />
+
+      <div className="flex flex-row gap-1">
+        <DeleteMoment momentId={moment._id} />
+        <CreateJournalBlock momentId={moment._id} />
+        <CreateImagesBlock momentId={moment._id} />
+        <EditDisplayName moment={moment} />
+      </div>
     </div>
   );
 }
