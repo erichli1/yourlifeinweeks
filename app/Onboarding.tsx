@@ -12,7 +12,8 @@ import { FastForwardIcon } from "lucide-react";
 import { useMediaQuery } from "react-responsive";
 
 const DURATION_OF_DROP_IN_ANIMATION = 500;
-const INCREMENT_DURATION_OF_DROP_IN_ANIMATION = 50;
+const INCREMENT_DURATION_OF_DROP_IN_ANIMATION_DESKTOP = 50;
+const INCREMENT_DURATION_OF_DROP_IN_ANIMATION_MOBILE = 125;
 
 const onboardingSquareClasses = "aspect-square border-[1px] border-filled";
 const fadeInClasses = "animate-in fade-in";
@@ -43,30 +44,30 @@ const StageDirections: Record<
   Stage,
   {
     view: "1x52" | "90x52";
-    timeToSwitch: number | null;
+    timeToSwitch: (isMobile: boolean) => number | null;
     title: (week: number, year: number) => string | null;
   }
 > = {
   oneBigWeek: {
     view: "1x52",
-    timeToSwitch: 2000,
+    timeToSwitch: () => 2000,
     title: () => "This is one week of your life.",
   },
-  oneSmallWeek: { view: "1x52", timeToSwitch: 2000, title: () => null },
+  oneSmallWeek: { view: "1x52", timeToSwitch: () => 2000, title: () => null },
   oneFullYear: {
     view: "1x52",
-    timeToSwitch: 4000,
+    timeToSwitch: () => 4000,
     title: () => "This is one year of your life.",
   },
-  oneSmallYear: { view: "90x52", timeToSwitch: 1000, title: () => null },
+  oneSmallYear: { view: "90x52", timeToSwitch: () => 1000, title: () => null },
   oneFullLife: {
     view: "90x52",
-    timeToSwitch: 9000,
+    timeToSwitch: (isMobile) => (isMobile ? 14_000 : 9_000),
     title: () => "This is your life.",
   },
   oneFilledLife: {
     view: "90x52",
-    timeToSwitch: null,
+    timeToSwitch: () => null,
     title: (week, year) => `Welcome to the ${addOrdinalSuffix(week)} week of
         your ${addOrdinalSuffix(year)} year of life.`,
   },
@@ -78,8 +79,8 @@ function Title({ title }: { title: string | null }) {
   return <div className={cn(fadeInClasses, duration500Ms)}>{title}</div>;
 }
 
-const incrementalAnimation = (counter: number) =>
-  `enter ${DURATION_OF_DROP_IN_ANIMATION}ms ease-out ${(counter + 1) * INCREMENT_DURATION_OF_DROP_IN_ANIMATION}ms forwards`;
+const incrementalAnimation = (counter: number, isMobile: boolean) =>
+  `enter ${DURATION_OF_DROP_IN_ANIMATION}ms ease-out ${(counter + 1) * (isMobile ? INCREMENT_DURATION_OF_DROP_IN_ANIMATION_MOBILE : INCREMENT_DURATION_OF_DROP_IN_ANIMATION_DESKTOP)}ms forwards`;
 
 function ComponentFor1x52({ stage }: { stage: Stage }) {
   return (
@@ -117,7 +118,7 @@ function ComponentFor1x52({ stage }: { stage: Stage }) {
               )}
               style={{
                 opacity: 0,
-                animation: incrementalAnimation(i),
+                animation: incrementalAnimation(i, false),
               }}
             />
           ))}
@@ -130,9 +131,13 @@ function ComponentFor1x52({ stage }: { stage: Stage }) {
 const MemoizedBox = React.memo(function Box({
   isFilled,
   row,
+  isMobile,
+  shouldAnimate,
 }: {
   isFilled: boolean;
   row: number;
+  isMobile: boolean;
+  shouldAnimate: boolean;
 }) {
   return (
     <div
@@ -142,36 +147,48 @@ const MemoizedBox = React.memo(function Box({
         duration500Ms,
         isFilled ? "bg-filled" : "bg-background"
       )}
-      style={{
-        opacity: 0,
-        animation: incrementalAnimation(row),
-      }}
+      style={
+        shouldAnimate
+          ? {
+              opacity: 0,
+              animation: incrementalAnimation(row, isMobile),
+            }
+          : undefined
+      }
     />
   );
 });
 
-const ITERATION_DELAY = 5;
-const DELAY_BEFORE_SWITCHING_SCREEN = 5000;
-const BOXES_TO_FILL_PER_ITERATION = {
-  SLOW: 1,
-  MEDIUM: 2,
-  FAST: 4,
+const getFillingAnimation = (isMobile: boolean) => {
+  return {
+    iterationDelay: isMobile ? 10 : 5,
+    delayBeforeSwitchingScreen: 5000,
+    boxesToFillPerIteration: {
+      slow: isMobile ? 2 : 1,
+      medium: isMobile ? 4 : 2,
+      fast: isMobile ? 8 : 4,
+    },
+  };
 };
 
 function ComponentFor90x52({
   stage,
   todayRelativeToBirthday,
   setOnboardingComplete,
+  isMobile,
 }: {
   stage: Stage;
   todayRelativeToBirthday: YearWeek;
   setOnboardingComplete: (complete: boolean) => void;
+  isMobile: boolean;
 }) {
   const [rowFilling, setRowFilling] = React.useState<number>(0);
   const [columnFilling, setColumnFilling] = React.useState<number>(0);
 
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
+
+    const animationConstants = getFillingAnimation(isMobile);
 
     const isDoneFilling =
       todayRelativeToBirthday.year <= rowFilling &&
@@ -189,28 +206,32 @@ function ComponentFor90x52({
           // Delay before switching to main screen
           setTimeout(() => {
             setOnboardingComplete(true);
-          }, DELAY_BEFORE_SWITCHING_SCREEN);
+          }, animationConstants.delayBeforeSwitchingScreen);
         }
         // If currently filling a row
         else if (isFillingRow) {
           // If at the first or last row, iterate slowly
           if (isFillingFirstOrLastRow)
-            setColumnFilling((prev) => prev + BOXES_TO_FILL_PER_ITERATION.SLOW);
+            setColumnFilling(
+              (prev) => prev + animationConstants.boxesToFillPerIteration.slow
+            );
           // If at the second or second last row, iterate faster
           else if (isFillingSecondOrSecondLastRow)
             setColumnFilling(
-              (prev) => prev + BOXES_TO_FILL_PER_ITERATION.MEDIUM
+              (prev) => prev + animationConstants.boxesToFillPerIteration.medium
             );
           // If at a "normal" row, iterate fastest
           else
-            setColumnFilling((prev) => prev + BOXES_TO_FILL_PER_ITERATION.FAST);
+            setColumnFilling(
+              (prev) => prev + animationConstants.boxesToFillPerIteration.fast
+            );
         }
         // If done filling a row, move to the next row
         else {
           setRowFilling((prev) => prev + 1);
           setColumnFilling(0);
         }
-      }, ITERATION_DELAY);
+      }, animationConstants.iterationDelay);
     }
 
     return () => clearTimeout(timer);
@@ -220,6 +241,7 @@ function ComponentFor90x52({
     setOnboardingComplete,
     stage,
     todayRelativeToBirthday,
+    isMobile,
   ]);
 
   return (
@@ -230,6 +252,8 @@ function ComponentFor90x52({
           key={j}
           isFilled={0 < rowFilling || (0 === rowFilling && j < columnFilling)}
           row={0}
+          isMobile={isMobile}
+          shouldAnimate={stage === "oneFullLife"}
         />
       ))}
 
@@ -244,6 +268,8 @@ function ComponentFor90x52({
                 (i + 1 === rowFilling && j < columnFilling)
               }
               row={i + 1}
+              isMobile={isMobile}
+              shouldAnimate={stage === "oneFullLife"}
             />
           ))
         )}
@@ -277,7 +303,7 @@ export function Onboarding({
   birthday: Date;
   setOnboardingComplete: (complete: boolean) => void;
 }) {
-  const [stage, setStage] = React.useState<Stage>("oneBigWeek");
+  const [stage, setStage] = React.useState<Stage>("oneFilledLife");
   const currStageDirections = StageDirections[stage];
 
   const { addItem, removeItem } = useNavbar();
@@ -285,20 +311,20 @@ export function Onboarding({
   const todayRelativeToBirthday =
     getCurrentYearWeekRelativeToBirthday(birthday);
 
+  const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
+
   // Handle stage transitions
   React.useEffect(() => {
     const nextStage = getNextStage(stage);
     let timeOutId: NodeJS.Timeout;
 
-    if (nextStage && currStageDirections.timeToSwitch) {
-      timeOutId = setTimeout(
-        () => setStage(nextStage),
-        currStageDirections.timeToSwitch
-      );
-    }
+    const timeToSwitch = currStageDirections.timeToSwitch(isMobile);
+
+    if (nextStage && timeToSwitch)
+      timeOutId = setTimeout(() => setStage(nextStage), timeToSwitch);
 
     return () => clearTimeout(timeOutId);
-  }, [stage, setStage, currStageDirections]);
+  }, [stage, setStage, currStageDirections, isMobile]);
 
   // Add skip onboarding button to the navbar
   React.useEffect(() => {
@@ -313,8 +339,6 @@ export function Onboarding({
       removeItem("skipOnboarding");
     };
   }, [addItem, removeItem, setOnboardingComplete]);
-
-  const isMobile = useMediaQuery({ query: "(max-width: 640px)" });
 
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-4 p-4">
@@ -353,6 +377,7 @@ export function Onboarding({
             stage={stage}
             todayRelativeToBirthday={todayRelativeToBirthday}
             setOnboardingComplete={setOnboardingComplete}
+            isMobile={isMobile}
           />
         )}
       </div>
