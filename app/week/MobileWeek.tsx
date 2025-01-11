@@ -14,19 +14,13 @@ export function MobileWeekContent({
   yearWeek: YearWeek;
 }) {
   return user.signedIn ? (
-    <AuthenticatedMobileWeekContent user={user} yearWeek={yearWeek} />
+    <AuthenticatedMobileWeekContent yearWeek={yearWeek} />
   ) : (
     <></>
   );
 }
 
-function AuthenticatedMobileWeekContent({
-  user,
-  yearWeek,
-}: {
-  user: User;
-  yearWeek: YearWeek;
-}) {
+function AuthenticatedMobileWeekContent({ yearWeek }: { yearWeek: YearWeek }) {
   const moment = useQuery(api.myFunctions.getMomentForYearWeek, {
     year: yearWeek.year,
     week: yearWeek.week,
@@ -34,5 +28,5 @@ function AuthenticatedMobileWeekContent({
 
   if (!moment) return <></>;
 
-  return <MomentComponent moment={moment} />;
+  return <MomentComponent moment={moment} isMobile={true} />;
 }

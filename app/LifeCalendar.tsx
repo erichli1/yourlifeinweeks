@@ -275,10 +275,11 @@ function MobileComponent({ user }: { user: User }) {
   const currentYearWeek = getCurrentYearWeekRelativeToBirthday(user.birthday);
 
   return (
-    <div className="p-4 flex flex-col gap-2">
+    <div className="p-4 flex flex-col gap-4">
       <p className="font-bold">
         Welcome to year {currentYearWeek.year}, week {currentYearWeek.week}.
       </p>
+
       {user.signedIn && (
         <>
           {displayProps.map((displayProps, idx) => (

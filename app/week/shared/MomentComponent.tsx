@@ -15,22 +15,61 @@ import { Badge } from "@/components/ui/badge";
 import { MomentBlock_Images, MomentBlock_Journal } from "@/convex/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDropzone } from "react-dropzone";
+import { getWeekBoxCustomColor } from "@/app/helpers/colors";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
 >;
 
+function DeleteBlock({ momentBlockId }: { momentBlockId: Id<"momentBlocks"> }) {
+  const deleteMomentBlock = useMutation(api.blocks.deleteMomentBlock);
+
+  return (
+    <WrapInTooltip text="Delete entry" delayDuration={0} asChild>
+      <Button
+        variant="ghost"
+        onClick={() => {
+          deleteMomentBlock({
+            momentBlockId,
+          }).catch(console.error);
+        }}
+        className="w-auto p-0"
+      >
+        <TrashIcon className="w-4 h-4" />
+      </Button>
+    </WrapInTooltip>
+  );
+}
+
 function BlockContainer({
   momentBlockId,
   momentBlockCreationTime,
   children,
+  isMobile,
 }: {
   momentBlockId: Id<"momentBlocks">;
   momentBlockCreationTime: number;
   children: React.ReactNode;
+  isMobile: boolean;
 }) {
-  const deleteMomentBlock = useMutation(api.blocks.deleteMomentBlock);
   const [isHovering, setIsHovering] = useState(false);
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-1 pt-1">
+        <div className="flex flex-row gap-2 items-center">
+          <DeleteBlock momentBlockId={momentBlockId} />
+
+          <div>
+            <Badge variant="outline">
+              {renderDate(new Date(momentBlockCreationTime), "MM/DD/YY HH:MM")}
+            </Badge>
+          </div>
+        </div>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -52,19 +91,7 @@ function BlockContainer({
               </Button>
             </WrapInTooltip> */}
 
-          <WrapInTooltip text="Delete entry" delayDuration={0} asChild>
-            <Button
-              variant="ghost"
-              onClick={() => {
-                deleteMomentBlock({
-                  momentBlockId,
-                }).catch(console.error);
-              }}
-              className="w-auto p-0"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </Button>
-          </WrapInTooltip>
+          <DeleteBlock momentBlockId={momentBlockId} />
         </div>
       ) : (
         <div />
@@ -127,8 +154,10 @@ function UploadedImage({
 
 function ImagesBlockComponent({
   imagesBlock,
+  isMobile,
 }: {
   imagesBlock: MomentBlock_Images;
+  isMobile: boolean;
 }) {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const saveStorageId = useMutation(api.files.saveStorageId);
@@ -162,6 +191,7 @@ function ImagesBlockComponent({
     <BlockContainer
       momentBlockId={imagesBlock.momentBlockId}
       momentBlockCreationTime={imagesBlock.momentBlockCreationTime}
+      isMobile={isMobile}
     >
       <div className="w-full flex flex-row gap-2 flex-wrap">
         {imagesBlock.images.map((image) => (
@@ -194,8 +224,10 @@ function ImagesBlockComponent({
 
 function JournalBlockComponent({
   journalBlock,
+  isMobile,
 }: {
   journalBlock: MomentBlock_Journal;
+  isMobile: boolean;
 }) {
   const [entry, setEntry] = useState(journalBlock.entry);
   const updateJournalBlock = useMutation(api.blocks.updateJournalBlock);
@@ -222,6 +254,7 @@ function JournalBlockComponent({
     <BlockContainer
       momentBlockId={journalBlock.momentBlockId}
       momentBlockCreationTime={journalBlock.momentBlockCreationTime}
+      isMobile={isMobile}
     >
       <Textarea
         className="resize-none border-0 shadow-none focus-visible:ring-0 pl-0 py-0"
@@ -238,7 +271,7 @@ function JournalBlockComponent({
   );
 }
 
-export function MomentComponent({ moment }: { moment: Moment }) {
+function EditName({ moment, isMobile }: { moment: Moment; isMobile: boolean }) {
   const [name, setName] = useState(moment.name);
   const renameMoment = useMutation(api.myFunctions.renameMoment);
 
@@ -258,22 +291,42 @@ export function MomentComponent({ moment }: { moment: Moment }) {
   }, [sendRequest]);
 
   return (
+    <Input
+      value={name}
+      onChange={(e) => {
+        setName(e.target.value);
+        debouncedSendRequest(e.target.value);
+      }}
+      className={cn(
+        "font-bold",
+        !isMobile &&
+          "w-full rounded-none border-0 shadow-none focus-visible:ring-0 p-0 h-16 text-4xl"
+      )}
+      placeholder="something big"
+    />
+  );
+}
+
+export function MomentComponent({
+  moment,
+  isMobile,
+}: {
+  moment: Moment;
+  isMobile: boolean;
+}) {
+  return (
     <>
       <div className="contents">
+        <div
+          className={cn(
+            "h-1",
+            moment.color && getWeekBoxCustomColor(moment.color)
+          )}
+        />
+
         <div />
 
-        <Input
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            debouncedSendRequest(e.target.value);
-          }}
-          className={cn(
-            "w-full rounded-none font-bold border-0 shadow-none focus-visible:ring-0 p-0",
-            "h-16 text-4xl"
-          )}
-          placeholder="something big"
-        />
+        <EditName moment={moment} isMobile={isMobile} />
       </div>
 
       {moment.momentBlocks.map((block) => {
@@ -282,6 +335,7 @@ export function MomentComponent({ moment }: { moment: Moment }) {
             <JournalBlockComponent
               journalBlock={block}
               key={block.momentBlockId}
+              isMobile={isMobile}
             />
           );
         if (block.type === "images")
@@ -289,6 +343,7 @@ export function MomentComponent({ moment }: { moment: Moment }) {
             <ImagesBlockComponent
               imagesBlock={block}
               key={block.momentBlockId}
+              isMobile={isMobile}
             />
           );
       })}

@@ -38,7 +38,7 @@ function AuthenticatedWeekContentWithMoment({
     <WeekSheetContainer user={user} yearWeek={yearWeek} color={moment.color}>
       <div className="col-span-2 overflow-y-auto">
         <div className="grid grid-cols-[3rem_1fr] gap-y-3">
-          <MomentComponent moment={moment} />
+          <MomentComponent moment={moment} isMobile={false} />
         </div>
       </div>
 
