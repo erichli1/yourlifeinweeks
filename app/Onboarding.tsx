@@ -303,7 +303,7 @@ export function Onboarding({
   birthday: Date;
   setOnboardingComplete: (complete: boolean) => void;
 }) {
-  const [stage, setStage] = React.useState<Stage>("oneFilledLife");
+  const [stage, setStage] = React.useState<Stage>("oneBigWeek");
   const currStageDirections = StageDirections[stage];
 
   const { addItem, removeItem } = useNavbar();
