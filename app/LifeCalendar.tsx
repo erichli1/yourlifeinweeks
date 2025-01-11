@@ -26,7 +26,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { WeekSheetContent } from "./WeekSheet";
+import { WeekSheetContent } from "./week/WeekSheet";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
@@ -35,6 +35,7 @@ import { Color } from "@/convex/utils";
 import { CmdK } from "./helpers/cmd-k";
 import { useMediaQuery } from "react-responsive";
 import { Badge } from "@/components/ui/badge";
+import { MobileWeekContent } from "./week/MobileWeek";
 
 function WeekBoxPopover({
   user,
@@ -281,7 +282,7 @@ function MobileComponent({ user }: { user: User }) {
       {user.signedIn && (
         <>
           {displayProps.map((displayProps, idx) => (
-            <MobileWeekComponent
+            <MobileWeekContainer
               user={user}
               displayProps={displayProps}
               key={`mobile-week-${idx}`}
@@ -299,7 +300,7 @@ function MobileComponent({ user }: { user: User }) {
   );
 }
 
-function MobileWeekComponent({
+function MobileWeekContainer({
   user,
   displayProps,
 }: {
@@ -344,7 +345,7 @@ function MobileWeekComponent({
         </div>
       </div>
 
-      {/* <WeekSheetContent user={user} yearWeek={displayProps} /> */}
+      <MobileWeekContent user={user} yearWeek={displayProps} />
     </div>
   );
 }
