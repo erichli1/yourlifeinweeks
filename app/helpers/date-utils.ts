@@ -112,13 +112,19 @@ export function getDatesFromWeekNumber({
 
 export function renderDate(
   date: Date,
-  format: "MM/DD/YY" | "MM/DD/YY HH:MM" | "MMM DD YYYY"
+  format: "MM/DD/YY" | "MM/DD" | "MM/DD/YY HH:MM" | "MMM DD YYYY"
 ) {
   if (format === "MM/DD/YY")
     return date.toLocaleDateString("en-US", {
       month: "2-digit",
       day: "2-digit",
       year: "2-digit",
+    });
+
+  if (format === "MM/DD")
+    return date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
     });
 
   if (format === "MM/DD/YY HH:MM")
