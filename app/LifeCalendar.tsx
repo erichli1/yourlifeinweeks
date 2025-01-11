@@ -34,8 +34,7 @@ import { getWeekBoxCustomColor } from "./helpers/colors";
 import { Color } from "@/convex/utils";
 import { CmdK } from "./helpers/cmd-k";
 import { useMediaQuery } from "react-responsive";
-import { Badge } from "@/components/ui/badge";
-import { MobileWeekContent } from "./week/MobileWeek";
+import { MobileWeekContainer } from "./week/MobileWeek";
 
 function WeekBoxPopover({
   user,
@@ -297,56 +296,6 @@ function MobileComponent({ user }: { user: User }) {
           <p>Sign in to add moments!</p>
         </div>
       )}
-    </div>
-  );
-}
-
-function MobileWeekContainer({
-  user,
-  displayProps,
-}: {
-  user: User;
-  displayProps: DisplayProps;
-}) {
-  const { start, end } = getDatesFromWeekNumber({
-    birthday: user.birthday,
-    yearWeek: { year: displayProps.year, week: displayProps.week },
-  });
-
-  const badgeText = displayProps.displayName
-    ? displayProps.displayName.length > 0
-      ? displayProps.displayName
-      : "Moment"
-    : "Moment";
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-row gap-2 items-start">
-        <Badge
-          className={cn(
-            displayProps.color && getWeekBoxCustomColor(displayProps.color)
-          )}
-        >
-          {badgeText}
-        </Badge>
-
-        <div className="flex flex-row gap-2">
-          <p className="text-sm">
-            Year {displayProps.year}, Week {displayProps.week}
-          </p>
-
-          <p className="text-sm">
-            (
-            {renderDate(
-              start,
-              start.getFullYear() === end.getFullYear() ? "MM/DD" : "MM/DD/YY"
-            )}{" "}
-            - {renderDate(end, "MM/DD/YY")})
-          </p>
-        </div>
-      </div>
-
-      <MobileWeekContent user={user} yearWeek={displayProps} />
     </div>
   );
 }

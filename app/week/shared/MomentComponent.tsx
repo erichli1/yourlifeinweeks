@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { MomentBlock_Images, MomentBlock_Journal } from "@/convex/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { useDropzone } from "react-dropzone";
-import { getWeekBoxCustomColor } from "@/app/helpers/colors";
 
 type Moment = NonNullable<
   typeof api.myFunctions.getMomentForYearWeek._returnType
@@ -317,13 +316,6 @@ export function MomentComponent({
   return (
     <>
       <div className="contents">
-        <div
-          className={cn(
-            "h-1",
-            moment.color && getWeekBoxCustomColor(moment.color)
-          )}
-        />
-
         <div />
 
         <EditName moment={moment} isMobile={isMobile} />
