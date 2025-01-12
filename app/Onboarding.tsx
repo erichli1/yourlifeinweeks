@@ -208,7 +208,7 @@ function ComponentFor90x52({
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    const animationConstants = getFillingAnimation(true);
+    const animationConstants = getFillingAnimation(isMobile);
 
     const isDoneFilling =
       todayRelativeToBirthday.year <= rowFilling &&
