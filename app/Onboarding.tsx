@@ -21,6 +21,7 @@ const duration500Ms = "duration-500";
 const duration1000Ms = "duration-1000";
 const SIZE_OF_BIG_WEEK = "w-[8rem]";
 const SIZE_OF_WEEK_IN_YEAR = "w-[calc((100vw-102px-2rem)/52)]";
+const SIZE_OF_WEEK_IN_YEAR_MOBILE = "w-[calc((100vw-25.5px-2rem)/52)]";
 
 const StageList = [
   "oneBigWeek",
@@ -82,7 +83,13 @@ function Title({ title }: { title: string | null }) {
 const incrementalAnimation = (counter: number, isMobile: boolean) =>
   `enter ${DURATION_OF_DROP_IN_ANIMATION}ms ease-out ${(counter + 1) * (isMobile ? INCREMENT_DURATION_OF_DROP_IN_ANIMATION_MOBILE : INCREMENT_DURATION_OF_DROP_IN_ANIMATION_DESKTOP)}ms forwards`;
 
-function ComponentFor1x52({ stage }: { stage: Stage }) {
+function ComponentFor1x52({
+  stage,
+  isMobile,
+}: {
+  stage: Stage;
+  isMobile: boolean;
+}) {
   return (
     <>
       <div
@@ -94,18 +101,31 @@ function ComponentFor1x52({ stage }: { stage: Stage }) {
           stage === "oneBigWeek" &&
             cn("left-1/2 transform -translate-x-1/2", SIZE_OF_BIG_WEEK),
           (stage === "oneSmallWeek" || stage === "oneFullYear") &&
-            cn("left-0 transform-none", SIZE_OF_WEEK_IN_YEAR)
+            cn(
+              "left-0 transform-none",
+              isMobile ? SIZE_OF_WEEK_IN_YEAR_MOBILE : SIZE_OF_WEEK_IN_YEAR
+            )
         )}
       />
 
       {stage === "oneSmallWeek" && (
-        <div className={cn(SIZE_OF_WEEK_IN_YEAR)}>&nbsp;</div>
+        <div
+          className={cn(
+            isMobile ? SIZE_OF_WEEK_IN_YEAR_MOBILE : SIZE_OF_WEEK_IN_YEAR
+          )}
+        >
+          &nbsp;
+        </div>
       )}
 
       {stage === "oneFullYear" && (
         <>
           {/* Empty padding cell to account for transformed big week */}
-          <div className={cn(SIZE_OF_WEEK_IN_YEAR)} />
+          <div
+            className={cn(
+              isMobile ? SIZE_OF_WEEK_IN_YEAR_MOBILE : SIZE_OF_WEEK_IN_YEAR
+            )}
+          />
           {/* 51 additional cells, one for each week of the year */}
           {Array.from({ length: 51 }).map((_, i) => (
             <div
@@ -372,7 +392,7 @@ export function Onboarding({
         }}
       >
         {currStageDirections.view === "1x52" && (
-          <ComponentFor1x52 stage={stage} />
+          <ComponentFor1x52 stage={stage} isMobile={isMobile} />
         )}
 
         {currStageDirections.view === "90x52" && (
