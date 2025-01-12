@@ -181,7 +181,7 @@ const MemoizedBox = React.memo(function Box({
 
 const getFillingAnimation = (isMobile: boolean) => {
   return {
-    iterationDelay: isMobile ? 10 : 5,
+    iterationDelay: isMobile ? 20 : 10,
     delayBeforeSwitchingScreen: 5000,
     boxesToFillPerIteration: {
       slow: isMobile ? 2 : 1,
@@ -208,7 +208,7 @@ function ComponentFor90x52({
   React.useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    const animationConstants = getFillingAnimation(isMobile);
+    const animationConstants = getFillingAnimation(true);
 
     const isDoneFilling =
       todayRelativeToBirthday.year <= rowFilling &&
