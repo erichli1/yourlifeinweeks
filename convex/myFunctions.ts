@@ -133,6 +133,7 @@ export const getOrCreateMomentForYearWeek = mutation({
       .query("moments")
       .filter((q) =>
         q.and(
+          q.eq(q.field("accountId"), account._id),
           q.eq(q.field("year"), args.year),
           q.eq(q.field("week"), args.week)
         )
@@ -168,6 +169,7 @@ export const getMomentForYearWeek = query({
       .query("moments")
       .filter((q) =>
         q.and(
+          q.eq(q.field("accountId"), account._id),
           q.eq(q.field("year"), args.year),
           q.eq(q.field("week"), args.week)
         )
