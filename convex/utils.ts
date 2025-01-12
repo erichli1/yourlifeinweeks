@@ -57,3 +57,15 @@ export const getRandomColor = () => {
 export function isNotNull<T>(item: T | null | undefined): item is T {
   return item != null;
 }
+
+export function sortByYearWeek<T extends { year: number; week: number }>(
+  items: T[],
+  order: "asc" | "desc" = "desc"
+): T[] {
+  return [...items].sort((a, b) => {
+    if (a.year !== b.year) {
+      return order === "asc" ? a.year - b.year : b.year - a.year;
+    }
+    return order === "asc" ? a.week - b.week : b.week - a.week;
+  });
+}

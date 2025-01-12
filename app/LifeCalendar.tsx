@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/popover";
 import { WeekSheetContent } from "./week/WeekSheet";
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { FitText } from "./helpers/fit-text";
 import { getWeekBoxCustomColor } from "./helpers/colors";
 import { Color } from "@/convex/utils";
@@ -331,7 +331,7 @@ function MobileComponent({ user }: { user: User }) {
       <CreateMomentDialog
         user={user}
         open={addMomentOpen}
-        onOpenChange={setAddMomentOpen}
+        setOpen={setAddMomentOpen}
       />
     </div>
   );
@@ -340,12 +340,16 @@ function MobileComponent({ user }: { user: User }) {
 function CreateMomentDialog({
   user,
   open,
-  onOpenChange,
+  setOpen,
 }: {
   user: User;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  setOpen: (open: boolean) => void;
 }) {
+  const getOrCreateMomentForYearWeek = useMutation(
+    api.myFunctions.getOrCreateMomentForYearWeek
+  );
+
   const [date, setDate] = useState<Date | null | undefined>(null);
   const [yearWeek, setYearWeek] = useState<YearWeek | null | undefined>(null);
 
@@ -367,7 +371,7 @@ function CreateMomentDialog({
   })();
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
         <Dialog.Title />
         <Dialog.Description />
@@ -393,7 +397,19 @@ function CreateMomentDialog({
 
             {yearWeek && (
               <div className="flex flex-row justify-end">
-                <Button size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    getOrCreateMomentForYearWeek({
+                      year: yearWeek.year,
+                      week: yearWeek.week,
+                      name: "",
+                    })
+                      .then(() => setOpen(false))
+                      .catch(console.error);
+                  }}
+                >
                   Go <ArrowRightIcon className="ml-1 h-4 w-4" />
                 </Button>
               </div>

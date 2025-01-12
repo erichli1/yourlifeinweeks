@@ -7,6 +7,7 @@ import {
   getRandomColor,
   isNotNull,
   MomentBlock,
+  sortByYearWeek,
 } from "./utils";
 import { deleteMomentBlock, fillRawMomentBlock } from "./blocks";
 
@@ -118,6 +119,33 @@ export const initializeUserAndAccount = mutation({
   },
 });
 
+export const getOrCreateMomentForYearWeek = mutation({
+  args: {
+    year: v.number(),
+    week: v.number(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const account = await getActiveAccount(ctx, {});
+    if (!account) throw new Error("No account found");
+
+    const existingMoment = await ctx.db
+      .query("moments")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("year"), args.year),
+          q.eq(q.field("week"), args.week)
+        )
+      )
+      .unique();
+
+    if (existingMoment) return existingMoment._id;
+
+    const newlyCreated = await createMomentForYearWeek(ctx, args);
+    return newlyCreated;
+  },
+});
+
 export const getMomentForYearWeek = query({
   args: {
     year: v.number(),
@@ -183,7 +211,7 @@ export const createMomentForYearWeek = mutation({
     const account = await getActiveAccount(ctx, {});
     if (!account) throw new Error("No account found");
 
-    await ctx.db.insert("moments", {
+    return await ctx.db.insert("moments", {
       accountId: account._id,
       year: args.year,
       week: args.week,
@@ -240,7 +268,9 @@ export const getDisplayProps = query({
       .filter((q) => q.eq(q.field("accountId"), account._id))
       .collect();
 
-    return moments.map((moment) => ({
+    const sortedMoments = sortByYearWeek(moments, "desc");
+
+    return sortedMoments.map((moment) => ({
       displayName: moment.displayName,
       color: moment.color,
       year: moment.year,
