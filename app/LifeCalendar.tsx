@@ -44,6 +44,7 @@ import { MobileWeekContainer } from "./week/MobileWeek";
 import { useNavbar } from "./Navbar";
 import * as Dialog from "@radix-ui/react-dialog";
 import YearWeekInput from "./helpers/YearWeekInput";
+import { SignInButton } from "@clerk/clerk-react";
 
 function WeekBoxPopover({
   user,
@@ -305,10 +306,12 @@ function MobileComponent({ user }: { user: User }) {
   const currentYearWeek = getCurrentYearWeekRelativeToBirthday(user.birthday);
 
   return (
-    <div className="p-4 flex flex-col gap-16 pb-6">
+    <div className="p-4 flex flex-col gap-6">
       <p className="font-bold text-2xl">
         Welcome to year {currentYearWeek.year}, week {currentYearWeek.week}.
       </p>
+
+      <MobileFilledLife yearWeek={currentYearWeek} />
 
       {user.signedIn && (
         <>
@@ -323,9 +326,12 @@ function MobileComponent({ user }: { user: User }) {
       )}
 
       {!user.signedIn && (
-        <div className="flex flex-row gap-2 items-start">
-          <p>Sign in to add moments!</p>
-        </div>
+        <p className="italic text-sm">
+          <SignInButton mode="modal">
+            <span className="underline cursor-pointer">Sign in</span>
+          </SignInButton>{" "}
+          to add moments!
+        </p>
       )}
 
       <CreateMomentDialog
@@ -333,6 +339,34 @@ function MobileComponent({ user }: { user: User }) {
         open={addMomentOpen}
         setOpen={setAddMomentOpen}
       />
+    </div>
+  );
+}
+
+function MobileFilledLife({ yearWeek }: { yearWeek: YearWeek }) {
+  return (
+    <div
+      className="grid gap-[1px]"
+      style={{
+        gridTemplateColumns: "repeat(52, minmax(0, 1fr))",
+        height: "min(90vh, (90vw * 90) / 52)",
+        width: "min(90vw, (90vh * 52) / 90)",
+      }}
+    >
+      {Array.from({ length: 90 }).map((_, i) =>
+        Array.from({ length: 52 }).map((_, j) => (
+          <div
+            key={`mobile-week-${i}-${j}`}
+            className={cn(
+              "aspect-square border-[0.75px] border-filled",
+              yearWeek.year > i + 1 ||
+                (yearWeek.year === i + 1 && yearWeek.week > j + 1)
+                ? "bg-filled"
+                : "bg-empty"
+            )}
+          />
+        ))
+      )}
     </div>
   );
 }

@@ -283,7 +283,7 @@ function SkipOnboardingButton({
   setOnboardingComplete: (complete: boolean) => void;
 }) {
   return (
-    <WrapInTooltip text="Skip">
+    <WrapInTooltip text="Skip" asChild>
       <Button
         variant="outline"
         size="icon"
