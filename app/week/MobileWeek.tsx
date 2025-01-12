@@ -64,7 +64,7 @@ export function MobileWeekContainer({
           }
         />
 
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-2 font-bold">
           <p className="text-sm">
             Year {displayProps.year}, Week {displayProps.week}
           </p>

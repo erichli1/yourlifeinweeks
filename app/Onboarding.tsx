@@ -331,7 +331,10 @@ export function Onboarding({
     addItem({
       key: "skipOnboarding",
       element: (
-        <SkipOnboardingButton setOnboardingComplete={setOnboardingComplete} />
+        <SkipOnboardingButton
+          setOnboardingComplete={setOnboardingComplete}
+          key="skip-onboarding"
+        />
       ),
     });
 

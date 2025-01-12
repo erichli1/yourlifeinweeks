@@ -1,9 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { MinimizeIcon } from "lucide-react";
+import { ArrowRightIcon, MinimizeIcon, PlusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   didYearWeekPassRelativeToToday,
   getCurrentYearWeekRelativeToBirthday,
@@ -35,6 +41,9 @@ import { Color } from "@/convex/utils";
 import { CmdK } from "./helpers/cmd-k";
 import { useMediaQuery } from "react-responsive";
 import { MobileWeekContainer } from "./week/MobileWeek";
+import { useNavbar } from "./Navbar";
+import * as Dialog from "@radix-ui/react-dialog";
+import YearWeekInput from "./helpers/YearWeekInput";
 
 function WeekBoxPopover({
   user,
@@ -268,13 +277,35 @@ export function LifeCalendar({ user }: { user: User }) {
 
 function MobileComponent({ user }: { user: User }) {
   const displayProps = useQuery(api.myFunctions.getDisplayProps);
+  const [addMomentOpen, setAddMomentOpen] = useState(false);
+
+  const { addItem, removeItem } = useNavbar();
+
+  useEffect(() => {
+    if (user.signedIn) {
+      addItem({
+        key: "addMoment",
+        element: (
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-background shadow-md"
+            key="add-moment"
+            onClick={() => setAddMomentOpen(true)}
+          >
+            <PlusIcon className="h-4 w-4" />
+          </Button>
+        ),
+      });
+    }
+  }, [addItem, removeItem, user.signedIn]);
 
   if (!displayProps) return <></>;
 
   const currentYearWeek = getCurrentYearWeekRelativeToBirthday(user.birthday);
 
   return (
-    <div className="p-4 flex flex-col gap-6">
+    <div className="p-4 flex flex-col gap-16 pb-6">
       <p className="font-bold text-2xl">
         Welcome to year {currentYearWeek.year}, week {currentYearWeek.week}.
       </p>
@@ -296,6 +327,80 @@ function MobileComponent({ user }: { user: User }) {
           <p>Sign in to add moments!</p>
         </div>
       )}
+
+      <CreateMomentDialog
+        user={user}
+        open={addMomentOpen}
+        onOpenChange={setAddMomentOpen}
+      />
     </div>
+  );
+}
+
+function CreateMomentDialog({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: User;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [date, setDate] = useState<Date | null | undefined>(null);
+  const [yearWeek, setYearWeek] = useState<YearWeek | null | undefined>(null);
+
+  const textToRender = (() => {
+    if (yearWeek === undefined || date === undefined) return null;
+    if (date === null) return "Invalid date";
+
+    // Invalid yearWeek
+    if (yearWeek === null) {
+      // Valid date
+      if (date)
+        return `${renderDate(date, "MMM DD YYYY")} (not on the calendar!)`;
+      // Invalid date
+      else return "Invalid date";
+    }
+
+    // Valid date & yearWeek
+    return `${renderDate(date, "MMM DD YYYY")} (year ${yearWeek.year}, week ${yearWeek.week})`;
+  })();
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Title />
+        <Dialog.Description />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 bg-background -translate-x-1/2 -translate-y-1/2 rounded-md focus:outline-none z-50 shadow-lg p-2 max-w-xs w-full">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-bold">
+              Enter date to go to or create moment
+            </p>
+
+            <YearWeekInput
+              birthday={user.birthday}
+              setValues={(yearWeek, date) => {
+                setYearWeek(yearWeek);
+                setDate(date);
+              }}
+              props={{
+                placeholder: "yesterday, jan 21 2024",
+              }}
+            />
+
+            {textToRender && <p className="text-sm italic">{textToRender}</p>}
+
+            {yearWeek && (
+              <div className="flex flex-row justify-end">
+                <Button size="sm" variant="outline">
+                  Go <ArrowRightIcon className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
