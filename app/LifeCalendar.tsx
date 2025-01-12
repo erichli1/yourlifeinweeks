@@ -45,6 +45,7 @@ import { useNavbar } from "./Navbar";
 import * as Dialog from "@radix-ui/react-dialog";
 import YearWeekInput from "./helpers/YearWeekInput";
 import { SignInButton } from "@clerk/clerk-react";
+import { HelpButton } from "./helpers/help";
 
 function WeekBoxPopover({
   user,
@@ -259,6 +260,8 @@ export function LifeCalendar({ user }: { user: User }) {
         <MemoizedGridCalendar user={user} />
       </div>
       <div className="fixed bottom-0 left-0 m-2 flex flex-row gap-1">
+        <HelpButton isMobile={isMobile} signedIn={user.signedIn} />
+
         {zoom !== DEFAULT_ZOOM && (
           <WrapInTooltip text="Reset zoom" asChild>
             <Button
