@@ -9,6 +9,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { HelpCircleIcon, UserIcon } from "lucide-react";
+import { useState } from "react";
 
 export function HelpButton({
   signedIn,
@@ -17,10 +18,12 @@ export function HelpButton({
   signedIn: boolean;
   isMobile: boolean;
 }) {
+  const [open, setOpen] = useState(!signedIn);
+
   if (isMobile) return <></>;
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           className="bg-background shadow-lg"
@@ -33,11 +36,13 @@ export function HelpButton({
 
       <DialogContent className="!animate-none">
         <DialogHeader>
-          <DialogTitle>some useful tips</DialogTitle>
+          <DialogTitle>welcome to your life calendar! some tips</DialogTitle>
           <DialogDescription className="flex flex-col gap-1">
             <p>Hit ⌘ + K to quickly navigate to a week</p>
 
             <p>Hold ⌥ and scroll to zoom in and out</p>
+
+            <p>Hold ⌥ and drag to pan around</p>
 
             {signedIn && (
               <p>

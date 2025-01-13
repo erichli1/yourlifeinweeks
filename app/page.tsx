@@ -63,7 +63,12 @@ function UnauthenticatedScreen() {
     return (
       <Onboarding
         birthday={birthday}
-        setOnboardingComplete={setOnboardingComplete}
+        setOnboardingComplete={(complete) => {
+          setOnboardingComplete(complete);
+          const params = new URLSearchParams(window.location.search);
+          params.set("onboarding", "false");
+          window.location.search = params.toString();
+        }}
       />
     );
 

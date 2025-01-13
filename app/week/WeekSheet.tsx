@@ -138,7 +138,7 @@ function UnauthenticatedWeekContent({
       <div className="h-full flex items-center justify-center">
         <p>
           <SignInButton
-            mode="modal"
+            mode="redirect"
             redirectUrl={window ? window.location.href : undefined}
           >
             <span className="underline cursor-pointer">Sign in</span>
