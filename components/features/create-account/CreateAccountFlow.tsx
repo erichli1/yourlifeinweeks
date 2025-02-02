@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { DatePicker, isValidDate } from "./DatePicker";
+import { DatePicker, isValidDate } from "../../shared/DatePicker";
 
 export function CreateAccountFlow({
   onSubmit,

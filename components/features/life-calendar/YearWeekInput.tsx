@@ -5,7 +5,7 @@ import {
   isValidYearWeek,
   parseDateTime,
   YearWeek,
-} from "./date-utils";
+} from "@/lib/date-utils";
 import { debounce } from "lodash";
 
 export default function YearWeekInput({

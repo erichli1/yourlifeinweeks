@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ImagesIcon, NotebookPenIcon } from "lucide-react";
 import React from "react";
-import { WrapInTooltip } from "../../helpers/components";
+import { WrapInTooltip } from "@/components/shared/WrapInTooltip";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";

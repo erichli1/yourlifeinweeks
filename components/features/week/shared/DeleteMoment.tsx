@@ -1,6 +1,6 @@
 "use client";
 
-import { WrapInTooltip } from "@/app/helpers/components";
+import { WrapInTooltip } from "@/components/shared/WrapInTooltip";
 import { Button } from "@/components/ui/button";
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";

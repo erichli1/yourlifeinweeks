@@ -22,7 +22,7 @@ import {
   useContext,
   useCallback,
 } from "react";
-import { WrapInTooltip } from "./helpers/components";
+import { WrapInTooltip } from "./WrapInTooltip";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -31,7 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { CreateAccountFlow } from "./CreateAccountFlow";
+import { CreateAccountFlow } from "../features/create-account/CreateAccountFlow";
 import { Id } from "@/convex/_generated/dataModel";
 
 type NavbarItem = {

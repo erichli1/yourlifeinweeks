@@ -11,13 +11,13 @@ import { api } from "@/convex/_generated/api";
 import { SignInButton } from "@clerk/clerk-react";
 import { ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Onboarding } from "./Onboarding";
+import { Onboarding } from "../components/features/onboarding/Onboarding";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LifeCalendar } from "./LifeCalendar";
+import { LifeCalendar } from "../components/features/life-calendar/LifeCalendar";
 import { User } from "./helpers/utils";
-import { Navbar } from "./Navbar";
-import { CreateAccountFlow } from "./CreateAccountFlow";
-import { DatePicker, isValidDate } from "./DatePicker";
+import { Navbar } from "../components/shared/navbar";
+import { CreateAccountFlow } from "../components/features/create-account/CreateAccountFlow";
+import { DatePicker, isValidDate } from "../components/shared/DatePicker";
 
 export default function Home() {
   return (

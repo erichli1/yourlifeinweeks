@@ -4,17 +4,13 @@ import { Button } from "@/components/ui/button";
 import { SignInButton } from "@clerk/clerk-react";
 import { cn } from "@/lib/utils";
 import React from "react";
-import {
-  getDatesFromWeekNumber,
-  renderDate,
-  YearWeek,
-} from "../helpers/date-utils";
-import { User } from "../helpers/utils";
+import { getDatesFromWeekNumber, renderDate, YearWeek } from "@/lib/date-utils";
+import { User } from "@/lib/types";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { Separator } from "@/components/ui/separator";
 import { Color } from "@/convex/utils";
-import { getWeekBoxCustomColor } from "../helpers/colors";
+import { getWeekBoxCustomColor } from "@/lib/colors";
 import { ColorPicker } from "./shared/ColorPicker";
 import { EditDisplayName } from "./shared/EditDisplayName";
 import { DeleteMoment } from "./shared/DeleteMoment";

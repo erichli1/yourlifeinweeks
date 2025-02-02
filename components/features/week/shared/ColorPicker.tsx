@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import React from "react";
-import { WrapInTooltip } from "../../helpers/components";
+import { WrapInTooltip } from "@/components/shared/WrapInTooltip";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Color, COLORS } from "@/convex/utils";
@@ -11,7 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { getWeekBoxCustomColor } from "../../helpers/colors";
+import { getWeekBoxCustomColor } from "@/lib/colors";
 
 const COLOR_CIRCLE_CLASSES = "w-4 h-4 rounded-full";
 

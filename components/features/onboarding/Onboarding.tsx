@@ -4,9 +4,9 @@ import {
   getCurrentYearWeekRelativeToBirthday,
   YearWeek,
   addOrdinalSuffix,
-} from "./helpers/date-utils";
-import { useNavbar } from "./Navbar";
-import { WrapInTooltip } from "./helpers/components";
+} from "@/lib/date-utils";
+import { useNavbar } from "../../shared/navbar";
+import { WrapInTooltip } from "../../shared/WrapInTooltip";
 import { Button } from "@/components/ui/button";
 import { FastForwardIcon } from "lucide-react";
 import { useMediaQuery } from "react-responsive";

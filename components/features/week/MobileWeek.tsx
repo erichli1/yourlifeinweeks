@@ -2,11 +2,11 @@
 
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
-import { getDatesFromWeekNumber, renderDate } from "../helpers/date-utils";
-import { User } from "../helpers/utils";
+import { getDatesFromWeekNumber, renderDate } from "@/lib/date-utils";
+import { User } from "@/lib/types";
 import { MomentComponent } from "./shared/MomentComponent";
 import { cn } from "@/lib/utils";
-import { getWeekBoxCustomColor } from "../helpers/colors";
+import { getWeekBoxCustomColor } from "@/lib/colors";
 import { Color } from "@/convex/utils";
 import { Badge } from "@/components/ui/badge";
 import { CreateImagesBlock, CreateJournalBlock } from "./shared/CreateBlock";

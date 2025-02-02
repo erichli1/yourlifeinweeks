@@ -16,10 +16,10 @@ import {
   getDatesFromWeekNumber,
   renderDate,
   YearWeek,
-} from "./helpers/date-utils";
-import { useZoom, useDrag, DEFAULT_ZOOM } from "./helpers/interactions";
-import { WrapInTooltip } from "./helpers/components";
-import { User } from "./helpers/utils";
+} from "@/lib/date-utils";
+import { useZoom, useDrag, DEFAULT_ZOOM } from "./interactions";
+import { WrapInTooltip } from "@/components/shared/WrapInTooltip";
+import { User } from "@/lib/types";
 import { debounce } from "lodash";
 import {
   Sheet,
@@ -32,20 +32,20 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "@/components/ui/popover";
-import { WeekSheetContent } from "./week/WeekSheet";
+import { WeekSheetContent } from "@/components/features/week/WeekSheet";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
-import { FitText } from "./helpers/fit-text";
-import { getWeekBoxCustomColor } from "./helpers/colors";
+import { FitText } from "./FitText";
+import { getWeekBoxCustomColor } from "../../../lib/colors";
 import { Color } from "@/convex/utils";
-import { CmdK } from "./helpers/cmd-k";
+import { CmdK } from "../cmd-k/CmdK";
 import { useMediaQuery } from "react-responsive";
-import { MobileWeekContainer } from "./week/MobileWeek";
-import { useNavbar } from "./Navbar";
+import { MobileWeekContainer } from "@/components/features/week/MobileWeek";
+import { useNavbar } from "../../shared/navbar";
 import * as Dialog from "@radix-ui/react-dialog";
-import YearWeekInput from "./helpers/YearWeekInput";
+import YearWeekInput from "./YearWeekInput";
 import { SignInButton } from "@clerk/clerk-react";
-import { HelpButton } from "./helpers/help";
+import { HelpButton } from "./HelpButton";
 
 function WeekBoxPopover({
   user,

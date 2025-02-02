@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { WrapInTooltip } from "../../helpers/components";
+import { WrapInTooltip } from "@/components/shared/WrapInTooltip";
 import { api } from "@/convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Input } from "@/components/ui/input";
