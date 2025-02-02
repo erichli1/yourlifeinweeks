@@ -1,30 +1,17 @@
-# TODOs
+# yourlifeinweeks
 
-Account
+## TLDR
 
-- Better navbar menu
-- Renaming accounts
-- Deleting accounts
+A reminder that life is short — see your life visualized in weeks. Add journal entries + photos to note moments for each week.
 
-Views
+## Set up
 
-- Toggle to certain views
+This project uses [Convex](https://www.convex.dev/) for the backend and [Clerk](https://clerk.com/) for auth so running locally would require accounts there. To start locally, run `npm run dev`, initialize the Convex app, and then add the appropriate env variables for Clerk (NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY to .env.local and CLERK_JWT_ISSUER_DOMAIN to the Convex environment variables).
 
-Command bar
+# Product improvements
 
-- Searching moments
-- Searching by year / week
-- This week / next week overrides
-
-Moment
-
-- Be able to navigate entirely without mouse
-
-PRODUCT
-
-- Get more info from user (ex: hopes and dreams)
-- Better onboarding of various features
-
-QOL
-
-- Better handle grabbing and cursor
+Account: more clear navbar, rename/delete accounts
+Views: toggle to certain views (ex: full life, full width, these few weeks, etc)
+Command bar: search for moments, search by year/week, override this/next week to align with bday-indexed week
+Onboarding: get more info from user to encourage reflection (ex: hopes and dreams), better onboarding of features
+QOL: Better grabbing and cursor when holding option
