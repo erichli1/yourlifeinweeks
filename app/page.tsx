@@ -14,7 +14,7 @@ import React, { useEffect, useState } from "react";
 import { Onboarding } from "../components/features/onboarding/Onboarding";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LifeCalendar } from "../components/features/life-calendar/LifeCalendar";
-import { User } from "./helpers/utils";
+import { User } from "@/lib/types";
 import { Navbar } from "../components/shared/navbar";
 import { CreateAccountFlow } from "../components/features/create-account/CreateAccountFlow";
 import { DatePicker, isValidDate } from "../components/shared/DatePicker";
