@@ -33,10 +33,6 @@ function getMostRecentBirthdayRelativeToDate(birthday: Date, date: Date): Date {
   return mostRecentBirthday;
 }
 
-function getMostRecentBirthday(birthday: Date): Date {
-  return getMostRecentBirthdayRelativeToDate(birthday, new Date());
-}
-
 export function getYearWeekOfDate({
   birthday,
   date,
@@ -100,9 +96,10 @@ export function getDatesFromWeekNumber({
   // The last week is a little longer to account for the extra 2-3 days (52 * 7 = 364)
   const endOfWeek = new Date(startOfWeek);
   if (yearWeek.week === 52) {
-    const mostRecentBirthday = getMostRecentBirthday(birthday);
-    endOfWeek.setFullYear(mostRecentBirthday.getFullYear() + 1);
-    endOfWeek.setDate(mostRecentBirthday.getDate() - 1);
+    // For week 52, end at the day before next birthday in that year
+    const nextBirthday = new Date(birthday);
+    nextBirthday.setFullYear(birthday.getFullYear() + yearWeek.year + 1);
+    endOfWeek.setTime(nextBirthday.getTime() - 24 * 60 * 60 * 1000); // Day before next birthday
   } else {
     endOfWeek.setDate(endOfWeek.getDate() + 6);
   }
